@@ -53,11 +53,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .log-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px}
 .log-book{font-size:10px;color:var(--text3);margin-bottom:9px}
 .log-book span{color:var(--text);font-weight:500}
-.log-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px}
+.log-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
 .lb{background:var(--blue-bg);color:var(--blue-text);border-radius:8px;padding:8px 2px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.15s}
 .lb:active{opacity:0.7}
+.queue-row{display:flex;align-items:center;justify-content:space-between;background:var(--bg2);border-radius:8px;padding:8px 11px;margin-bottom:6px;min-height:36px}
+.queue-empty{font-size:12px;color:var(--text3)}
+.queue-filled{display:flex;align-items:center;gap:8px;width:100%}
+.queue-time{font-size:15px;font-weight:700;color:var(--blue)}
+.queue-label{font-size:11px;color:var(--text2);flex:1}
+.queue-clear{font-size:11px;color:var(--red-text);background:var(--red-bg);border:none;border-radius:6px;padding:3px 8px;cursor:pointer;font-family:inherit;font-weight:600}
 .lb-main{background:var(--blue);color:#fff;border-radius:8px;padding:10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;width:100%;transition:opacity 0.15s}
 .lb-main:active{opacity:0.8}
+.lb-main:disabled{opacity:0.4;cursor:default}
+.last-session{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)}
+.last-session-label{font-size:11px;color:var(--text3)}
+.last-session-edit{font-size:11px;color:var(--blue-text);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:0}
 .msg{font-size:12px;text-align:center;margin-top:7px;min-height:16px;transition:opacity 0.3s}
 .msg.good{color:var(--green)}
 .msg.bad{color:var(--red)}
@@ -95,6 +105,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-actions{display:flex;gap:8px;margin-top:6px}
 .btn-save{flex:1;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
 .btn-cancel{background:var(--bg2);color:var(--text2);border:none;border-radius:var(--radius);padding:10px 14px;font-size:13px;font-family:inherit;cursor:pointer}
+.btn-danger{background:var(--red-bg);color:var(--red-text);border:none;border-radius:var(--radius);padding:10px 14px;font-size:13px;font-family:inherit;cursor:pointer;font-weight:600}
 .add-book-btn{width:100%;background:var(--bg2);color:var(--text2);border:0.5px dashed var(--border2);border-radius:var(--radius);padding:10px;font-size:12px;font-family:inherit;cursor:pointer;margin-top:4px}
 </style>
 </head>
@@ -146,7 +157,19 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <button class="lb" onclick="addTime(60)">+1hr</button>
           <button class="lb" onclick="addTime(120)">+2hr</button>
         </div>
-        <button class="lb-main" onclick="logSession()">Log session</button>
+        <div class="queue-row" id="queue-row">
+          <span class="queue-empty" id="queue-empty">No time queued</span>
+          <div class="queue-filled" id="queue-filled" style="display:none">
+            <span class="queue-time" id="queue-time">0m</span>
+            <span class="queue-label">queued — tap Log to save</span>
+            <button class="queue-clear" onclick="clearQueue()">Clear</button>
+          </div>
+        </div>
+        <button class="lb-main" id="log-btn" onclick="logSession()" disabled>Log session</button>
+        <div id="last-session-row" class="last-session" style="display:none">
+          <span class="last-session-label" id="last-session-label"></span>
+          <button class="last-session-edit" onclick="openEditSession()">Edit</button>
+        </div>
         <div class="msg" id="msg"></div>
       </div>
 
@@ -219,6 +242,21 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
+<div class="modal-overlay" id="modal-edit-session">
+  <div class="modal">
+    <div class="modal-title">Edit last session</div>
+    <div class="modal-row">
+      <div class="modal-label">Correct time (minutes)</div>
+      <input class="modal-input" id="edit-session-mins" type="number" min="1" placeholder="e.g. 45"/>
+    </div>
+    <div style="font-size:11px;color:var(--text3);margin-bottom:12px" id="edit-session-note"></div>
+    <div class="modal-actions">
+      <button class="btn-danger" onclick="deleteLastSession()">Remove session</button>
+      <button class="btn-save" onclick="saveEditSession()">Save</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const RAW_FIB=[0,1,1,2,3,5,8,13,21,34,55,89,144,233];
 const TARGET=3650,FIB_LEVELS=13;
@@ -238,7 +276,6 @@ function cumulativeHrsToLevel(l){
 }
 
 const TITLES=['Novice','Novice','Apprentice','Apprentice','Journeyman','Journeyman','Adept','Adept','Expert','Expert','Mystic Reader','Mystic Reader','Lorekeeper','Lorekeeper','Sage','Sage','Archivist','Archivist','Illuminated','Illuminated','Chronicler','Chronicler','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Legend'];
-
 function getTitle(lvl){return TITLES[Math.min(lvl,TITLES.length-1)]||'Legend';}
 
 function getMultiplier(streak){
@@ -248,13 +285,7 @@ function getMultiplier(streak){
   if(streak>=3)return 1.25;
   return 1;
 }
-
-function getMultLabel(streak){
-  const m=getMultiplier(streak);
-  if(m===1)return '';
-  return m+'x XP';
-}
-
+function getMultLabel(streak){const m=getMultiplier(streak);return m===1?'':m+'x XP';}
 function getMultColors(streak){
   if(streak>=30)return{bg:'#ffedd5',color:'#9a3412'};
   if(streak>=14)return{bg:'#ede9fe',color:'#6d28d9'};
@@ -264,33 +295,18 @@ function getMultColors(streak){
 }
 
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
-
 function daysBetween(a,b){if(!a)return 999;return Math.round((new Date(b)-new Date(a))/(864e5));}
 
 function loadState(){
   const r=localStorage.getItem('reading_rpg_v2');
   if(r)return JSON.parse(r);
-  return{
-    name:'Resty',
-    totalMinutes:0,
-    streak:0,
-    lastReadDate:null,
-    gracePending:false,
-    sessionMinutes:0,
-    currentBook:{title:'',author:''},
-    library:[],
-    level:0
-  };
+  return{name:'Resty',totalMinutes:0,streak:0,lastReadDate:null,gracePending:false,currentBook:{title:'',author:''},library:[],level:0,lastSession:null};
 }
-
 function saveState(){localStorage.setItem('reading_rpg_v2',JSON.stringify(state));}
 
 function getLevelFromHrs(hrs){
   let lvl=0,cum=0;
-  for(let i=1;i<=50;i++){
-    cum+=hrsForLevel(i);
-    if(hrs>=cum)lvl=i;else break;
-  }
+  for(let i=1;i<=50;i++){cum+=hrsForLevel(i);if(hrs>=cum)lvl=i;else break;}
   return lvl;
 }
 
@@ -298,15 +314,45 @@ function checkStreak(){
   const today=todayStr();
   if(!state.lastReadDate)return;
   const gap=daysBetween(state.lastReadDate,today);
-  if(gap===0)return;
-  if(gap===1)return;
+  if(gap===0||gap===1)return;
   if(gap===2&&!state.gracePending){state.gracePending=true;saveState();return;}
-  if(gap>=2&&state.gracePending){state.streak=0;state.gracePending=false;saveState();}
-  if(gap>=3){state.streak=0;state.gracePending=false;saveState();}
+  state.streak=0;state.gracePending=false;saveState();
 }
 
 let state=loadState();
 let pendingMinutes=0;
+
+function fmtMins(mins){
+  if(mins<60)return mins+'m';
+  const h=Math.floor(mins/60),m=mins%60;
+  return h+'h'+(m>0?' '+m+'m':'');
+}
+function fmtHrs(mins){
+  const h=mins/60;
+  if(h<1)return Math.round(mins)+'m';
+  return (Math.round(h*10)/10)+'h';
+}
+
+function updateQueueUI(){
+  const empty=document.getElementById('queue-empty');
+  const filled=document.getElementById('queue-filled');
+  const btn=document.getElementById('log-btn');
+  if(pendingMinutes===0){
+    empty.style.display='inline';
+    filled.style.display='none';
+    btn.disabled=true;
+  } else {
+    empty.style.display='none';
+    filled.style.display='flex';
+    document.getElementById('queue-time').textContent=fmtMins(pendingMinutes);
+    btn.disabled=false;
+  }
+}
+
+function clearQueue(){
+  pendingMinutes=0;
+  updateQueueUI();
+}
 
 function h2r(hex){const h=hex.replace('#','').slice(0,6);return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 
@@ -337,8 +383,7 @@ function drawWizard(lvl){
     for(let y=4;y<=28;y++){px(23,y,SC);px(24,y,SD);}
     px(22,4,SC);px(25,4,SC);px(21,3,SC);px(26,3,SC);
     if(c.orb){
-      const oc=c.orb.slice(0,7);
-      const ga=lvl>=6?160:lvl>=3?100:60;
+      const oc=c.orb.slice(0,7);const ga=lvl>=6?160:lvl>=3?100:60;
       [[22,2],[23,2],[24,2],[25,2],[21,1],[26,1]].forEach(([x,y])=>px(x,y,oc,ga*0.5));
       [[22,1],[23,1],[24,1],[25,1]].forEach(([x,y])=>px(x,y,oc,ga*0.7));
       [[22,0],[23,0],[24,0],[25,0]].forEach(([x,y])=>px(x,y,oc,ga));
@@ -415,14 +460,7 @@ function drawWizard(lvl){
   ctx.putImageData(img,0,0);
 }
 
-function fmtHrs(mins){
-  const h=mins/60;
-  if(h<1)return Math.round(mins)+'m';
-  return (Math.round(h*10)/10)+'h';
-}
-
 function render(){
-  const today=todayStr();
   const d=new Date();
   const dateStr=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('date-banner').textContent=dateStr;
@@ -431,7 +469,6 @@ function render(){
   const totalHrs=state.totalMinutes/60;
   const lvl=getLevelFromHrs(totalHrs);
   state.level=lvl;
-
   drawWizard(lvl);
 
   document.getElementById('char-name').textContent=state.name||'Resty';
@@ -454,16 +491,11 @@ function render(){
   const multLabel=getMultLabel(streak);
   const multEl=document.getElementById('streak-mult');
   multEl.textContent=multLabel;
-  if(multLabel){
-    const mc=getMultColors(streak);
-    multEl.style.background=mc.bg;multEl.style.color=mc.color;
-  } else {
-    multEl.style.background='transparent';multEl.style.color='transparent';
-  }
+  if(multLabel){const mc=getMultColors(streak);multEl.style.background=mc.bg;multEl.style.color=mc.color;}
+  else{multEl.style.background='transparent';multEl.style.color='transparent';}
 
   document.getElementById('m-hrs').textContent=(Math.round(totalHrs*10)/10)+'h';
   document.getElementById('m-next').textContent=hrsToNext+'h';
-
   const finishedBooks=state.library.filter(b=>b.finished).length;
   document.getElementById('m-books').textContent=finishedBooks;
 
@@ -471,6 +503,19 @@ function render(){
   document.getElementById('current-book-label').textContent=
     cb&&cb.title?(cb.title+(cb.author?' — '+cb.author:'')):'No book set';
 
+  const lsr=document.getElementById('last-session-row');
+  if(state.lastSession){
+    lsr.style.display='flex';
+    const mult=state.lastSession.multiplier;
+    const raw=fmtMins(state.lastSession.rawMinutes);
+    const effective=fmtHrs(state.lastSession.effectiveMinutes);
+    document.getElementById('last-session-label').textContent=
+      'Last: '+raw+(mult>1?' × '+mult+' = '+effective:'')+' logged';
+  } else {
+    lsr.style.display='none';
+  }
+
+  updateQueueUI();
   renderLibrary();
 }
 
@@ -478,16 +523,13 @@ function renderLibrary(){
   const lib=state.library;
   document.getElementById('lib-meta').textContent=
     lib.length+' book'+(lib.length!==1?'s':'')+' · '+(Math.round(state.totalMinutes/60*10)/10)+'h total';
-
   if(lib.length===0){
     document.getElementById('book-list').innerHTML=
       '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3)">No books yet. Add your first one!</div>';
     return;
   }
-
   const colors=['#1e40af','#16a34a','#d97706','#db2777','#7c3aed','#0891b2','#dc2626'];
   const bgs=['#dbeafe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#cffafe','#fee2e2'];
-
   let html='';
   lib.forEach((book,i)=>{
     const ci=i%colors.length;
@@ -513,7 +555,7 @@ function renderLibrary(){
 
 function addTime(mins){
   pendingMinutes+=mins;
-  showMsg('+'+(mins>=60?(mins/60)+'hr':mins+'m')+' queued. Tap Log session to save.',true);
+  updateQueueUI();
 }
 
 function logSession(){
@@ -525,13 +567,8 @@ function logSession(){
 
   if(state.lastReadDate!==today){
     const gap=daysBetween(state.lastReadDate,today);
-    if(gap<=1||(gap===2&&state.gracePending)){
-      state.streak++;
-      state.gracePending=false;
-    } else {
-      state.streak=1;
-      state.gracePending=false;
-    }
+    if(gap<=1||(gap===2&&state.gracePending)){state.streak++;state.gracePending=false;}
+    else{state.streak=1;state.gracePending=false;}
     state.lastReadDate=today;
   }
 
@@ -543,20 +580,70 @@ function logSession(){
     }
   }
 
+  state.lastSession={rawMinutes:pendingMinutes,effectiveMinutes:effective,multiplier:mult};
+
   const oldLvl=state.level;
   const newLvl=getLevelFromHrs(state.totalMinutes/60);
   state.level=newLvl;
 
-  const hrsLogged=Math.round(effective/60*10)/10;
   if(newLvl>oldLvl){
     showMsg('Level up! You are now '+getTitle(newLvl)+' — Level '+newLvl+'.',true);
   } else {
-    showMsg(fmtHrs(pendingMinutes)+' logged'+(mult>1?' ('+mult+'x = '+fmtHrs(effective)+'!':'')+')',true);
+    const label=fmtMins(pendingMinutes)+(mult>1?' × '+mult+' = '+fmtHrs(effective):'');
+    showMsg(label+' logged.',true);
   }
 
   pendingMinutes=0;
   saveState();
   render();
+}
+
+function openEditSession(){
+  if(!state.lastSession)return;
+  document.getElementById('edit-session-mins').value=state.lastSession.rawMinutes;
+  const mult=state.lastSession.multiplier;
+  document.getElementById('edit-session-note').textContent=
+    mult>1?'Multiplier applied at time of logging: '+mult+'x':'No multiplier was active.';
+  document.getElementById('modal-edit-session').className='modal-overlay open';
+}
+
+function saveEditSession(){
+  if(!state.lastSession)return;
+  const newRaw=parseInt(document.getElementById('edit-session-mins').value)||0;
+  if(newRaw<0)return;
+  const oldEffective=state.lastSession.effectiveMinutes;
+  const mult=state.lastSession.multiplier;
+  const newEffective=newRaw*mult;
+  const diff=newEffective-oldEffective;
+  state.totalMinutes=Math.max(0,state.totalMinutes+diff);
+  if(state.currentBook&&state.currentBook.title){
+    const bi=state.library.findIndex(b=>b.title===state.currentBook.title);
+    if(bi>=0){
+      state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)+diff);
+      state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
+    }
+  }
+  state.lastSession={rawMinutes:newRaw,effectiveMinutes:newEffective,multiplier:mult};
+  closeModal('modal-edit-session');
+  saveState();render();
+  showMsg('Session updated.',true);
+}
+
+function deleteLastSession(){
+  if(!state.lastSession)return;
+  const oldEffective=state.lastSession.effectiveMinutes;
+  state.totalMinutes=Math.max(0,state.totalMinutes-oldEffective);
+  if(state.currentBook&&state.currentBook.title){
+    const bi=state.library.findIndex(b=>b.title===state.currentBook.title);
+    if(bi>=0){
+      state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)-oldEffective);
+      state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
+    }
+  }
+  state.lastSession=null;
+  closeModal('modal-edit-session');
+  saveState();render();
+  showMsg('Session removed.',false);
 }
 
 function showMsg(text,good){
@@ -580,7 +667,6 @@ function openProfile(){
   document.getElementById('input-book-author').value=state.currentBook?state.currentBook.author||'':'';
   document.getElementById('modal-profile').className='modal-overlay open';
 }
-
 function saveProfile(){
   const name=document.getElementById('input-name').value.trim();
   const title=document.getElementById('input-book-title').value.trim();
@@ -589,12 +675,9 @@ function saveProfile(){
   state.currentBook={title,author};
   if(title){
     const exists=state.library.find(b=>b.title===title);
-    if(!exists){
-      state.library.unshift({title,author,minutes:0,finished:false,levelStart:state.level,levelEnd:state.level});
-    }
+    if(!exists)state.library.unshift({title,author,minutes:0,finished:false,levelStart:state.level,levelEnd:state.level});
   }
-  closeModal('modal-profile');
-  saveState();render();
+  closeModal('modal-profile');saveState();render();
 }
 
 function openAddBook(){
@@ -602,17 +685,13 @@ function openAddBook(){
   document.getElementById('add-book-author').value='';
   document.getElementById('modal-add-book').className='modal-overlay open';
 }
-
 function saveNewBook(){
   const title=document.getElementById('add-book-title').value.trim();
   const author=document.getElementById('add-book-author').value.trim();
-  if(!title){return;}
+  if(!title)return;
   const exists=state.library.find(b=>b.title===title);
-  if(!exists){
-    state.library.push({title,author,minutes:0,finished:false,levelStart:state.level,levelEnd:state.level});
-  }
-  closeModal('modal-add-book');
-  saveState();render();
+  if(!exists)state.library.push({title,author,minutes:0,finished:false,levelStart:state.level,levelEnd:state.level});
+  closeModal('modal-add-book');saveState();render();
 }
 
 function closeModal(id){document.getElementById(id).className='modal-overlay';}
