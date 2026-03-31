@@ -37,7 +37,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .app{max-width:420px;margin:0 auto;padding:1.25rem 1rem 3rem}
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:0.875rem}
 .char-row{display:flex;align-items:center;gap:1rem}
-.wizard-wrap{width:84px;height:84px;flex-shrink:0;background:#0a0f1e;border-radius:var(--radius)}
+.wizard-wrap{width:84px;height:84px;flex-shrink:0}
 .wizard-wrap canvas{image-rendering:pixelated;width:84px;height:84px}
 .char-name{font-size:18px;font-weight:600;color:var(--text)}
 .char-title{font-size:13px;color:var(--text2);margin-top:3px}
@@ -140,19 +140,20 @@ function drawWizard(lvl){
   const canvas=document.getElementById('wizard-canvas');
   const S=32;canvas.width=S;canvas.height=S;
   const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,S,S);
   const img=ctx.createImageData(S,S);const d=img.data;
   function px(x,y,hex,a){
     if(x<0||x>=S||y<0||y>=S||!hex)return;
     const al=(a===undefined)?(hex.length>7?parseInt(hex.slice(7,9),16):255):a;
+    if(al===0)return;
     const[r,g,b]=h2r(hex);const i=(y*S+x)*4;
     d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=al;
   }
   const c=getWizardColors(lvl);
   const[rb,rm,rd]=c.robe;
-  const K='#111111',SKIN='#e8c4a0',SKIN2='#c8a478',SKIN3='#a07850';
+  const SKIN='#e8c4a0',SKIN2='#c8a478',SKIN3='#a07850';
   const BEARD='#d8d8d8',BEARD2='#b8b8b8';
   const SC='#8B5e3c',SD='#6b4020';
-  for(let y=0;y<S;y++)for(let x=0;x<S;x++)px(x,y,'#0a0f1e');
   if(c.hasStaff){
     for(let y=4;y<=28;y++){px(23,y,SC);px(24,y,SD);}
     px(22,4,SC);px(25,4,SC);px(21,3,SC);px(26,3,SC);
@@ -214,9 +215,7 @@ function drawWizard(lvl){
     [14,15,16,17,18].forEach(x=>px(x,5,rd));
     [15,16,17].forEach(x=>{px(x,4,rm);px(x,3,rd);});
     px(16,2,rm);px(16,1,rd);
-    if(c.trim){
-      [12,13,14,15,16,17,18,19,20].forEach(x=>px(x,7,c.trim));
-    }
+    if(c.trim)[12,13,14,15,16,17,18,19,20].forEach(x=>px(x,7,c.trim));
   } else {
     [13,14,15,16,17,18,19].forEach(x=>px(x,7,'#374151'));
     [14,15,16,17,18].forEach(x=>px(x,6,'#374151'));
