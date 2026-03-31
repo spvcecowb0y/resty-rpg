@@ -121,10 +121,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-label{font-size:11px;font-weight:600;color:var(--text2)}
 .modal-input{font-size:14px;padding:9px 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit;width:100%}
 .status-pills{display:flex;gap:6px}
-.status-pill{flex:1;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius);border:1.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;text-align:center}
-.status-pill.active-reading{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
-.status-pill.active-finished{background:var(--green-bg);color:var(--green-text);border-color:var(--green)}
-.status-pill.active-unread{background:var(--bg2);color:var(--text);border-color:var(--border2)}
+.status-pill{flex:1;padding:8px;font-size:12px;font-weight:600;border-radius:var(--radius);border:1.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;text-align:center;transition:all 0.15s}
+.status-pill.sel-reading{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
+.status-pill.sel-finished{background:var(--green-bg);color:var(--green-text);border-color:var(--green)}
+.status-pill.sel-unread{background:var(--bg2);color:var(--text);border-color:var(--border2)}
 .modal-actions{display:flex;gap:8px;margin-top:6px}
 .btn-save{flex:1;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
 .btn-cancel{background:var(--bg2);color:var(--text2);border:none;border-radius:var(--radius);padding:10px 14px;font-size:13px;font-family:inherit;cursor:pointer}
@@ -229,7 +229,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- Profile modal -->
 <div class="modal-overlay" id="modal-profile">
   <div class="modal">
     <div class="modal-title">Profile</div>
@@ -244,7 +243,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- Add book modal -->
 <div class="modal-overlay" id="modal-add-book">
   <div class="modal">
     <div class="modal-title">Add book</div>
@@ -259,9 +257,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="modal-row">
       <div class="modal-label">Status</div>
       <div class="status-pills" id="add-status-pills">
-        <button class="status-pill active-reading" data-status="reading" onclick="setAddStatus('reading')">Reading</button>
-        <button class="status-pill" data-status="unread" onclick="setAddStatus('unread')">Unread</button>
-        <button class="status-pill" data-status="finished" onclick="setAddStatus('finished')">Finished</button>
+        <button class="status-pill" data-status="reading">Reading</button>
+        <button class="status-pill" data-status="unread">Unread</button>
+        <button class="status-pill" data-status="finished">Finished</button>
       </div>
     </div>
     <div id="add-book-warning" class="warning-banner" style="display:none">You already have 3 books in progress. Finish or pause one first.</div>
@@ -272,7 +270,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- Edit book modal -->
 <div class="modal-overlay" id="modal-edit-book">
   <div class="modal">
     <div class="modal-title">Edit book</div>
@@ -287,9 +284,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="modal-row">
       <div class="modal-label">Status</div>
       <div class="status-pills" id="edit-status-pills">
-        <button class="status-pill" data-status="reading" onclick="setEditStatus('reading')">Reading</button>
-        <button class="status-pill" data-status="unread" onclick="setEditStatus('unread')">Unread</button>
-        <button class="status-pill" data-status="finished" onclick="setEditStatus('finished')">Finished</button>
+        <button class="status-pill" data-status="reading">Reading</button>
+        <button class="status-pill" data-status="unread">Unread</button>
+        <button class="status-pill" data-status="finished">Finished</button>
       </div>
     </div>
     <div id="edit-book-warning" class="warning-banner" style="display:none">You already have 3 books in progress. Finish or pause one first.</div>
@@ -301,7 +298,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   </div>
 </div>
 
-<!-- Edit session modal -->
 <div class="modal-overlay" id="modal-edit-session">
   <div class="modal">
     <div class="modal-title">Edit session</div>
@@ -402,6 +398,26 @@ function fmtHrs(mins){
   return (Math.round(h*10)/10)+'h';
 }
 
+// ── Status pill helpers — use data attributes + event delegation ──
+function applyStatusPills(containerId, selectedStatus){
+  document.querySelectorAll('#'+containerId+' .status-pill').forEach(el=>{
+    const s=el.dataset.status;
+    el.className='status-pill'+(s===selectedStatus?' sel-'+s:'');
+  });
+}
+
+function setupStatusPills(containerId, getStatus, setStatus, getWarn){
+  document.getElementById(containerId).addEventListener('click',e=>{
+    const pill=e.target.closest('.status-pill');
+    if(!pill)return;
+    const s=pill.dataset.status;
+    setStatus(s);
+    applyStatusPills(containerId, s);
+    const warnEl=document.getElementById(containerId==='add-status-pills'?'add-book-warning':'edit-book-warning');
+    warnEl.style.display=getWarn(s)?'block':'none';
+  });
+}
+
 function updateQueueUI(){
   const empty=document.getElementById('queue-empty');
   const filled=document.getElementById('queue-filled');
@@ -427,15 +443,12 @@ function renderBookPills(){
   if(!state.activeBookTitle||!reading.find(b=>b.title===state.activeBookTitle)){
     state.activeBookTitle=reading[0].title;
   }
-  pills.innerHTML=reading.map(b=>`
-    <button class="book-pill${b.title===state.activeBookTitle?' active':''}" onclick="selectBook(${JSON.stringify(b.title)})">${b.title}</button>
-  `).join('');
+  pills.innerHTML=reading.map(b=>
+    `<button class="book-pill${b.title===state.activeBookTitle?' active':''}" onclick="selectBook(${JSON.stringify(b.title)})">${b.title}</button>`
+  ).join('');
 }
 
-function selectBook(title){
-  state.activeBookTitle=title;
-  renderBookPills();
-}
+function selectBook(title){state.activeBookTitle=title;renderBookPills();}
 
 function renderSessions(){
   const today=todayStr();
@@ -749,31 +762,12 @@ function deleteSession(){
   saveState();render();showMsg('Session removed.',false);
 }
 
-function setAddStatus(s){
-  addingStatus=s;
-  document.querySelectorAll('#add-status-pills .status-pill').forEach(el=>{
-    el.className='status-pill'+(el.dataset.status===s?' active-'+s:'');
-  });
-  const warn=document.getElementById('add-book-warning');
-  warn.style.display=(s==='reading'&&readingBooks().length>=3)?'block':'none';
-}
-
-function setEditStatus(s){
-  editingStatus=s;
-  document.querySelectorAll('#edit-status-pills .status-pill').forEach(el=>{
-    el.className='status-pill'+(el.dataset.status===s?' active-'+s:'');
-  });
-  const warn=document.getElementById('edit-book-warning');
-  const currentBook=state.library.find(b=>b.title===editingBookTitle);
-  const currentlyReading=currentBook&&currentBook.status==='reading';
-  warn.style.display=(s==='reading'&&!currentlyReading&&readingBooks().length>=3)?'block':'none';
-}
-
 function openAddBook(){
   document.getElementById('add-book-title').value='';
   document.getElementById('add-book-author').value='';
   addingStatus='reading';
-  setAddStatus('reading');
+  applyStatusPills('add-status-pills','reading');
+  document.getElementById('add-book-warning').style.display=readingBooks().length>=3?'block':'none';
   document.getElementById('modal-add-book').className='modal-overlay open';
 }
 
@@ -796,12 +790,10 @@ function openEditBook(title){
   const book=state.library.find(b=>b.title===title);
   if(!book)return;
   editingBookTitle=title;
+  editingStatus=book.status||'unread';
   document.getElementById('edit-book-title').value=book.title;
   document.getElementById('edit-book-author').value=book.author||'';
-  editingStatus=book.status||'unread';
-  document.querySelectorAll('#edit-status-pills .status-pill').forEach(el=>{
-    el.className='status-pill'+(el.dataset.status===editingStatus?' active-'+editingStatus:'');
-  });
+  applyStatusPills('edit-status-pills', editingStatus);
   document.getElementById('edit-book-warning').style.display='none';
   document.getElementById('modal-edit-book').className='modal-overlay open';
 }
@@ -814,10 +806,14 @@ function saveEditBook(){
   const newAuthor=document.getElementById('edit-book-author').value.trim();
   if(!newTitle)return;
   const wasReading=book.status==='reading';
-  if(editingStatus==='reading'&&!wasReading&&readingBooks().length>=3){
+  // Only block if switching TO reading and we're already at the cap (excluding this book)
+  const otherReadingCount=readingBooks().filter(b=>b.title!==editingBookTitle).length;
+  if(editingStatus==='reading'&&otherReadingCount>=3){
     showMsg('Finish or pause a book first — max 3 in progress.',false);return;
   }
   if(state.activeBookTitle===editingBookTitle)state.activeBookTitle=newTitle;
+  // If marking finished and this was the active book, clear active
+  if(editingStatus!=='reading'&&state.activeBookTitle===newTitle)state.activeBookTitle='';
   state.library[idx]={...book,title:newTitle,author:newAuthor,status:editingStatus};
   editingBookTitle=null;
   closeModal('modal-edit-book');saveState();render();
@@ -861,6 +857,23 @@ function closeModal(id){document.getElementById(id).className='modal-overlay';}
 document.querySelectorAll('.modal-overlay').forEach(m=>{
   m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});
 });
+
+// Wire up status pill event delegation after DOM is ready
+setupStatusPills(
+  'add-status-pills',
+  ()=>addingStatus,
+  s=>{addingStatus=s;},
+  s=>s==='reading'&&readingBooks().length>=3
+);
+setupStatusPills(
+  'edit-status-pills',
+  ()=>editingStatus,
+  s=>{editingStatus=s;},
+  s=>{
+    const otherReadingCount=readingBooks().filter(b=>b.title!==editingBookTitle).length;
+    return s==='reading'&&otherReadingCount>=3;
+  }
+);
 
 checkStreak();
 render();
