@@ -36,8 +36,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .inner{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:13px 14px}
 .char-row{display:flex;align-items:center;gap:11px}
-.wiz-wrap{width:72px;height:72px;flex-shrink:0}
-.wiz-wrap canvas{image-rendering:pixelated;width:72px;height:72px;animation:wizFloat 3s ease-in-out infinite,wizIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both}
+.wiz-wrap{width:72px;height:72px;flex-shrink:0;position:relative}
+.wiz-wrap canvas{image-rendering:pixelated;position:absolute;top:0;left:0;width:72px;height:72px}
+#particle-canvas{z-index:0}
+#wizard-canvas{z-index:1;animation:wizFloat 3s ease-in-out infinite,wizIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both}
 @keyframes wizFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
 @keyframes wizIn{from{opacity:0;transform:scale(0.6) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .char-right{flex:1;min-width:0}
@@ -140,7 +142,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
     <div class="inner">
       <div class="card">
         <div class="char-row">
-          <div class="wiz-wrap"><canvas id="wizard-canvas" width="32" height="32"></canvas></div>
+          <div class="wiz-wrap">
+            <canvas id="particle-canvas" width="72" height="72"></canvas>
+            <canvas id="wizard-canvas" width="32" height="32"></canvas>
+          </div>
           <div class="char-right">
             <div class="char-top">
               <div>
@@ -382,13 +387,8 @@ function clearQueue(){pendingMinutes=0;updateQueueUI();}
 function renderActiveBook(){
   const active=getActiveBook();
   const el=document.getElementById('active-book-display');
-  if(active){
-    el.textContent=active.title;
-    el.className='active-book-title';
-  } else {
-    el.textContent='No book set — add one in Library';
-    el.className='active-book-none';
-  }
+  if(active){el.textContent=active.title;el.className='active-book-title';}
+  else{el.textContent='No book set — add one in Library';el.className='active-book-none';}
 }
 
 function renderSessions(){
@@ -513,6 +513,68 @@ function drawWizard(lvl){
   ctx.putImageData(img,0,0);
 }
 
+// ── Particle system ──
+const pc=document.getElementById('particle-canvas');
+const pctx=pc.getContext('2d');
+const PW=72,PH=72;
+let particles=[],pFrame=0,pLvl=0;
+
+function particleColors(lvl){
+  if(lvl<=0)return[];
+  if(lvl<=2)return['#93c5fd','#bfdbfe','#6088cc'];
+  if(lvl<=4)return['#93c5fd','#bfdbfe','#fcd34d','#6088cc'];
+  if(lvl<=6)return['#a5b4fc','#bfdbfe','#fcd34d','#fbbf24','#818cf8'];
+  if(lvl<=8)return['#c4b5fd','#a78bfa','#fcd34d','#fbbf24','#f9a8d4'];
+  return['#fcd34d','#fbbf24','#f59e0b','#c4b5fd','#a78bfa','#ffffff'];
+}
+function particleMax(lvl){return lvl<=0?0:Math.min(3+lvl*2,22);}
+
+function makeParticle(randomY){
+  const cols=particleColors(pLvl);
+  return{
+    x:Math.random()*PW,y:randomY?Math.random()*PH:PH+2,
+    size:Math.random()<0.4?2:1,
+    color:cols[Math.floor(Math.random()*cols.length)],
+    alpha:Math.random()*0.6+0.2,
+    vx:(Math.random()-0.5)*0.4,
+    vy:-(Math.random()*0.5+0.2),
+    twinkleSpeed:Math.random()*0.04+0.01,
+    twinkleOffset:Math.random()*Math.PI*2,
+    life:0,maxLife:Math.random()*120+60
+  };
+}
+
+function resetParticles(lvl){
+  pLvl=lvl;
+  particles=[];
+  const count=particleMax(lvl);
+  for(let i=0;i<count;i++)particles.push(makeParticle(true));
+}
+
+function tickParticles(){
+  pctx.clearRect(0,0,PW,PH);
+  if(pLvl>0){
+    pFrame++;
+    if(pFrame%18===0&&particles.length<particleMax(pLvl)+4)particles.push(makeParticle(false));
+    for(let i=particles.length-1;i>=0;i--){
+      const p=particles[i];
+      p.x+=p.vx;p.y+=p.vy;p.life++;
+      const twinkle=0.4+0.6*Math.sin(pFrame*p.twinkleSpeed+p.twinkleOffset);
+      const lifeA=p.life<10?p.life/10:p.life>p.maxLife-15?(p.maxLife-p.life)/15:1;
+      if(p.life>=p.maxLife||p.y<-4){particles[i]=makeParticle(false);continue;}
+      pctx.globalAlpha=p.alpha*twinkle*lifeA;
+      pctx.fillStyle=p.color;
+      pctx.fillRect(Math.round(p.x),Math.round(p.y),p.size,p.size);
+      if(p.size===2&&pLvl>=4){
+        pctx.fillRect(Math.round(p.x)-1,Math.round(p.y)+1,4,1);
+        pctx.fillRect(Math.round(p.x)+1,Math.round(p.y)-1,1,4);
+      }
+    }
+    pctx.globalAlpha=1;
+  }
+  requestAnimationFrame(tickParticles);
+}
+
 function render(){
   const d=new Date();
   const dateStr=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
@@ -521,6 +583,7 @@ function render(){
   const totalHrs=state.totalMinutes/60;
   const lvl=getLevelFromHrs(totalHrs);state.level=lvl;
   drawWizard(lvl);
+  resetParticles(lvl);
   document.getElementById('char-name').textContent=state.name||'Resty';
   document.getElementById('char-title').textContent=getTitle(lvl)+' — Level '+lvl;
   const cumNow=cumulativeHrsToLevel(lvl);
@@ -710,6 +773,7 @@ setupStatusPills('edit-status-pills',()=>editingStatus,s=>{editingStatus=s;},s=>
 
 checkStreak();
 render();
+tickParticles();
 </script>
 </body>
 </html>
