@@ -37,7 +37,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:13px 14px}
 .char-row{display:flex;align-items:center;gap:11px}
 .wiz-wrap{width:72px;height:72px;flex-shrink:0}
-.wiz-wrap canvas{image-rendering:pixelated;width:72px;height:72px}
+.wiz-wrap canvas{image-rendering:pixelated;width:72px;height:72px;animation:wizFloat 3s ease-in-out infinite,wizIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both}
+@keyframes wizFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes wizIn{from{opacity:0;transform:scale(0.6) translateY(8px)}to{opacity:1;transform:scale(1) translateY(0)}}
 .char-right{flex:1;min-width:0}
 .char-top{display:flex;justify-content:space-between;align-items:flex-start}
 .char-name{font-size:16px;font-weight:700;color:var(--text)}
@@ -55,12 +57,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .met-val{font-size:15px;font-weight:700;color:var(--text);line-height:1.2}
 .met-lbl{font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:0.02em}
 .log-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:8px}
-.book-selector{margin-bottom:9px}
-.book-selector-label{font-size:10px;color:var(--text3);margin-bottom:5px}
-.book-pills{display:flex;gap:5px;flex-wrap:wrap}
-.book-pill{font-size:11px;font-weight:600;padding:5px 10px;border-radius:99px;border:1.5px solid var(--border2);background:transparent;color:var(--text2);cursor:pointer;font-family:inherit;transition:all 0.15s;white-space:nowrap}
-.book-pill.active{background:var(--blue-bg);color:var(--blue-text);border-color:var(--blue)}
-.book-pill:active{opacity:0.7}
+.active-book-row{display:flex;align-items:center;justify-content:space-between;background:var(--blue-bg);border-radius:var(--radius);padding:8px 11px;margin-bottom:9px}
+.active-book-label{font-size:10px;color:var(--blue-text);font-weight:600;white-space:nowrap;margin-right:8px;flex-shrink:0}
+.active-book-title{font-size:12px;font-weight:700;color:var(--blue-text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1}
+.active-book-none{font-size:11px;color:var(--text3);font-style:italic}
 .log-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:8px}
 .lb{background:var(--blue-bg);color:var(--blue-text);border-radius:8px;padding:8px 2px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.15s}
 .lb:active{opacity:0.7}
@@ -92,8 +92,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .tab-dot.active{background:var(--blue)}
 .tab-lbl{font-size:9px;color:var(--text3);font-weight:500}
 .tab-lbl.active{color:var(--blue);font-weight:700}
-.screen{display:none}
-.screen.visible{display:block}
+.screen{display:none}.screen.visible{display:block}
 .lib-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
 .lib-title{font-size:15px;font-weight:700;color:var(--text)}
 .lib-meta{font-size:11px;color:var(--text3)}
@@ -114,7 +113,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .book-edit-arrow{font-size:14px;color:var(--text3);flex-shrink:0}
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
-.modal{background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:420px}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:420px;animation:slideUp 0.25s cubic-bezier(0.34,1.2,0.64,1) both}
+@keyframes slideUp{from{transform:translateY(100%);opacity:0}to{transform:translateY(0);opacity:1}}
 .modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
 .modal-subtitle{font-size:11px;color:var(--text3);margin-bottom:14px}
 .modal-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
@@ -134,12 +134,10 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 </style>
 </head>
 <body>
-
 <div class="app">
   <div id="screen-home" class="screen visible">
     <div class="date-banner" id="date-banner"></div>
     <div class="inner">
-
       <div class="card">
         <div class="char-row">
           <div class="wiz-wrap"><canvas id="wizard-canvas" width="32" height="32"></canvas></div>
@@ -151,10 +149,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
               </div>
               <button class="profile-btn" onclick="openProfile()">Profile</button>
             </div>
-            <div class="xp-row">
-              <span id="xp-label">0h / 1h to Level 1</span>
-              <span id="xp-pct">0%</span>
-            </div>
+            <div class="xp-row"><span id="xp-label">0h / 1h to Level 1</span><span id="xp-pct">0%</span></div>
             <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
             <div class="streak-inline">
               <span id="streak-fire" style="font-size:13px;line-height:1;display:none">🔥</span>
@@ -165,18 +160,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </div>
         </div>
       </div>
-
       <div class="metrics">
         <div class="met"><div class="met-val" id="m-hrs">0h</div><div class="met-lbl">Hours read</div></div>
         <div class="met"><div class="met-val" id="m-next">1h</div><div class="met-lbl">To next level</div></div>
         <div class="met"><div class="met-val" id="m-books">0</div><div class="met-lbl">Books read</div></div>
       </div>
-
       <div class="card">
         <div class="log-title">Log reading time</div>
-        <div class="book-selector">
-          <div class="book-selector-label">Logging time for:</div>
-          <div class="book-pills" id="book-pills"></div>
+        <div class="active-book-row">
+          <span class="active-book-label">Now reading:</span>
+          <span class="active-book-title" id="active-book-display"></span>
         </div>
         <div class="log-btns">
           <button class="lb" onclick="addTime(15)">+15m</button>
@@ -199,7 +192,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         </div>
         <div class="msg" id="msg"></div>
       </div>
-
     </div>
   </div>
 
@@ -232,10 +224,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-overlay" id="modal-profile">
   <div class="modal">
     <div class="modal-title">Profile</div>
-    <div class="modal-row">
-      <div class="modal-label">Your name</div>
-      <input class="modal-input" id="input-name" type="text" placeholder="Your name"/>
-    </div>
+    <div class="modal-row"><div class="modal-label">Your name</div><input class="modal-input" id="input-name" type="text" placeholder="Your name"/></div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-profile')">Cancel</button>
       <button class="btn-save" onclick="saveProfile()">Save</button>
@@ -246,14 +235,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-overlay" id="modal-add-book">
   <div class="modal">
     <div class="modal-title">Add book</div>
-    <div class="modal-row">
-      <div class="modal-label">Title</div>
-      <input class="modal-input" id="add-book-title" type="text" placeholder="Book title"/>
-    </div>
-    <div class="modal-row">
-      <div class="modal-label">Author</div>
-      <input class="modal-input" id="add-book-author" type="text" placeholder="Author"/>
-    </div>
+    <div class="modal-row"><div class="modal-label">Title</div><input class="modal-input" id="add-book-title" type="text" placeholder="Book title"/></div>
+    <div class="modal-row"><div class="modal-label">Author</div><input class="modal-input" id="add-book-author" type="text" placeholder="Author"/></div>
     <div class="modal-row">
       <div class="modal-label">Status</div>
       <div class="status-pills" id="add-status-pills">
@@ -262,7 +245,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="status-pill" data-status="finished">Finished</button>
       </div>
     </div>
-    <div id="add-book-warning" class="warning-banner" style="display:none">You already have 3 books in progress. Finish or pause one first.</div>
+    <div id="add-book-warning" class="warning-banner" style="display:none">You already have an active book. Mark it finished or unread first.</div>
     <div class="modal-actions">
       <button class="btn-cancel" onclick="closeModal('modal-add-book')">Cancel</button>
       <button class="btn-save" onclick="saveNewBook()">Add to library</button>
@@ -273,14 +256,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 <div class="modal-overlay" id="modal-edit-book">
   <div class="modal">
     <div class="modal-title">Edit book</div>
-    <div class="modal-row">
-      <div class="modal-label">Title</div>
-      <input class="modal-input" id="edit-book-title" type="text"/>
-    </div>
-    <div class="modal-row">
-      <div class="modal-label">Author</div>
-      <input class="modal-input" id="edit-book-author" type="text"/>
-    </div>
+    <div class="modal-row"><div class="modal-label">Title</div><input class="modal-input" id="edit-book-title" type="text"/></div>
+    <div class="modal-row"><div class="modal-label">Author</div><input class="modal-input" id="edit-book-author" type="text"/></div>
     <div class="modal-row">
       <div class="modal-label">Status</div>
       <div class="status-pills" id="edit-status-pills">
@@ -289,7 +266,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
         <button class="status-pill" data-status="finished">Finished</button>
       </div>
     </div>
-    <div id="edit-book-warning" class="warning-banner" style="display:none">You already have 3 books in progress. Finish or pause one first.</div>
+    <div id="edit-book-warning" class="warning-banner" style="display:none">You already have an active book. Mark it finished or unread first.</div>
     <div class="modal-actions">
       <button class="btn-danger" onclick="deleteBook()">Delete</button>
       <button class="btn-cancel" onclick="closeModal('modal-edit-book')">Cancel</button>
@@ -302,10 +279,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
   <div class="modal">
     <div class="modal-title">Edit session</div>
     <div class="modal-subtitle" id="edit-session-subtitle"></div>
-    <div class="modal-row">
-      <div class="modal-label">Correct time (minutes)</div>
-      <input class="modal-input" id="edit-session-mins" type="number" min="1" placeholder="e.g. 45"/>
-    </div>
+    <div class="modal-row"><div class="modal-label">Correct time (minutes)</div><input class="modal-input" id="edit-session-mins" type="number" min="1" placeholder="e.g. 45"/></div>
     <div class="modal-actions">
       <button class="btn-danger" onclick="deleteSession()">Delete</button>
       <button class="btn-cancel" onclick="closeModal('modal-edit-session')">Cancel</button>
@@ -321,22 +295,11 @@ const fibSum=RAW_FIB.slice(1,14).reduce((a,b)=>a+b,0);
 const remaining=TARGET-fibSum;
 const linearLevels=50-FIB_LEVELS;
 const step=remaining/(linearLevels+linearLevels*(linearLevels-1)/2);
-
-function hrsForLevel(l){
-  if(l<=FIB_LEVELS)return RAW_FIB[l];
-  return Math.round(step*(l-FIB_LEVELS)*10)/10;
-}
-function cumulativeHrsToLevel(l){
-  let c=0;for(let i=1;i<=l;i++)c+=hrsForLevel(i);return Math.round(c*10)/10;
-}
-
+function hrsForLevel(l){if(l<=FIB_LEVELS)return RAW_FIB[l];return Math.round(step*(l-FIB_LEVELS)*10)/10;}
+function cumulativeHrsToLevel(l){let c=0;for(let i=1;i<=l;i++)c+=hrsForLevel(i);return Math.round(c*10)/10;}
 const TITLES=['Novice','Novice','Apprentice','Apprentice','Journeyman','Journeyman','Adept','Adept','Expert','Expert','Mystic Reader','Mystic Reader','Lorekeeper','Lorekeeper','Sage','Sage','Archivist','Archivist','Illuminated','Illuminated','Chronicler','Chronicler','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Legend'];
 function getTitle(lvl){return TITLES[Math.min(lvl,TITLES.length-1)]||'Legend';}
-
-function getMultiplier(streak){
-  if(streak>=30)return 2;if(streak>=14)return 1.75;
-  if(streak>=7)return 1.5;if(streak>=3)return 1.25;return 1;
-}
+function getMultiplier(streak){if(streak>=30)return 2;if(streak>=14)return 1.75;if(streak>=7)return 1.5;if(streak>=3)return 1.25;return 1;}
 function getMultLabel(streak){const m=getMultiplier(streak);return m===1?'':m+'x XP';}
 function getMultColors(streak){
   if(streak>=30)return{bg:'#ffedd5',color:'#9a3412'};
@@ -345,39 +308,36 @@ function getMultColors(streak){
   if(streak>=3)return{bg:'#ccfbf1',color:'#0f766e'};
   return{bg:'transparent',color:'transparent'};
 }
-
 function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
 function daysBetween(a,b){if(!a)return 999;return Math.round((new Date(b)-new Date(a))/(864e5));}
 
 function loadState(){
   const r=localStorage.getItem('reading_rpg_v4');
-  if(r)return JSON.parse(r);
-  const old=localStorage.getItem('reading_rpg_v3')||localStorage.getItem('reading_rpg_v2');
-  if(old){
-    const o=JSON.parse(old);
-    const lib=(o.library||[]).map(b=>({...b,status:b.finished?'finished':(b.title===((o.currentBook||{}).title)?'reading':'unread')}));
-    return{name:o.name||'Resty',totalMinutes:o.totalMinutes||0,streak:o.streak||0,lastReadDate:o.lastReadDate||null,gracePending:o.gracePending||false,activeBookTitle:((o.currentBook||{}).title)||'',library:lib,level:o.level||0,sessions:o.sessions||[]};
+  if(r){
+    const s=JSON.parse(r);
+    const readingCount=s.library?s.library.filter(b=>b.status==='reading').length:0;
+    if(readingCount>1){
+      let kept=false;
+      s.library=s.library.map(b=>{
+        if(b.status==='reading'){if(!kept){kept=true;return b;}return{...b,status:'unread'};}
+        return b;
+      });
+    }
+    delete s.activeBookTitle;delete s.activeBookIdx;
+    return s;
   }
-  return{name:'Resty',totalMinutes:0,streak:0,lastReadDate:null,gracePending:false,activeBookTitle:'',library:[],level:0,sessions:[]};
+  return{name:'Resty',totalMinutes:0,streak:0,lastReadDate:null,gracePending:false,library:[],level:0,sessions:[]};
 }
 function saveState(){localStorage.setItem('reading_rpg_v4',JSON.stringify(state));}
-
-function getLevelFromHrs(hrs){
-  let lvl=0,cum=0;
-  for(let i=1;i<=50;i++){cum+=hrsForLevel(i);if(hrs>=cum)lvl=i;else break;}
-  return lvl;
-}
-
+function getLevelFromHrs(hrs){let lvl=0,cum=0;for(let i=1;i<=50;i++){cum+=hrsForLevel(i);if(hrs>=cum)lvl=i;else break;}return lvl;}
 function checkStreak(){
-  const today=todayStr();
-  if(!state.lastReadDate)return;
+  const today=todayStr();if(!state.lastReadDate)return;
   const gap=daysBetween(state.lastReadDate,today);
   if(gap===0||gap===1)return;
   if(gap===2&&!state.gracePending){state.gracePending=true;saveState();return;}
   state.streak=0;state.gracePending=false;saveState();
 }
-
-function readingBooks(){return state.library.filter(b=>b.status==='reading');}
+function getActiveBook(){return state.library.find(b=>b.status==='reading')||null;}
 function finishedBooks(){return state.library.filter(b=>b.status==='finished');}
 
 let state=loadState();
@@ -387,68 +347,49 @@ let editingBookTitle=null;
 let addingStatus='reading';
 let editingStatus='reading';
 
-function fmtMins(mins){
-  if(mins<60)return Math.round(mins)+'m';
-  const h=Math.floor(mins/60),m=Math.round(mins%60);
-  return h+'h'+(m>0?' '+m+'m':'');
-}
-function fmtHrs(mins){
-  const h=mins/60;
-  if(h<1)return Math.round(mins)+'m';
-  return (Math.round(h*10)/10)+'h';
-}
+function fmtMins(mins){if(mins<60)return Math.round(mins)+'m';const h=Math.floor(mins/60),m=Math.round(mins%60);return h+'h'+(m>0?' '+m+'m':'');}
+function fmtHrs(mins){const h=mins/60;if(h<1)return Math.round(mins)+'m';return(Math.round(h*10)/10)+'h';}
 
-// ── Status pill helpers — use data attributes + event delegation ──
-function applyStatusPills(containerId, selectedStatus){
+function applyStatusPills(containerId,selectedStatus){
   document.querySelectorAll('#'+containerId+' .status-pill').forEach(el=>{
     const s=el.dataset.status;
     el.className='status-pill'+(s===selectedStatus?' sel-'+s:'');
   });
 }
-
-function setupStatusPills(containerId, getStatus, setStatus, getWarn){
+function setupStatusPills(containerId,getStatus,setStatus,getWarn){
   document.getElementById(containerId).addEventListener('click',e=>{
-    const pill=e.target.closest('.status-pill');
-    if(!pill)return;
-    const s=pill.dataset.status;
-    setStatus(s);
-    applyStatusPills(containerId, s);
-    const warnEl=document.getElementById(containerId==='add-status-pills'?'add-book-warning':'edit-book-warning');
-    warnEl.style.display=getWarn(s)?'block':'none';
+    const pill=e.target.closest('.status-pill');if(!pill)return;
+    const s=pill.dataset.status;setStatus(s);applyStatusPills(containerId,s);
+    const warnId=containerId==='add-status-pills'?'add-book-warning':'edit-book-warning';
+    document.getElementById(warnId).style.display=getWarn(s)?'block':'none';
   });
 }
 
 function updateQueueUI(){
+  const active=getActiveBook();
+  const btn=document.getElementById('log-btn');
   const empty=document.getElementById('queue-empty');
   const filled=document.getElementById('queue-filled');
-  const btn=document.getElementById('log-btn');
-  if(pendingMinutes===0){
-    empty.style.display='inline';filled.style.display='none';btn.disabled=true;
-  } else {
+  if(pendingMinutes===0){empty.style.display='inline';filled.style.display='none';btn.disabled=true;}
+  else{
     empty.style.display='none';filled.style.display='flex';
     document.getElementById('queue-time').textContent=fmtMins(pendingMinutes);
-    btn.disabled=false;
+    btn.disabled=!active;
   }
 }
-
 function clearQueue(){pendingMinutes=0;updateQueueUI();}
 
-function renderBookPills(){
-  const reading=readingBooks();
-  const pills=document.getElementById('book-pills');
-  if(reading.length===0){
-    pills.innerHTML='<span style="font-size:11px;color:var(--text3)">No books in progress — add one in Library</span>';
-    return;
+function renderActiveBook(){
+  const active=getActiveBook();
+  const el=document.getElementById('active-book-display');
+  if(active){
+    el.textContent=active.title;
+    el.className='active-book-title';
+  } else {
+    el.textContent='No book set — add one in Library';
+    el.className='active-book-none';
   }
-  if(!state.activeBookTitle||!reading.find(b=>b.title===state.activeBookTitle)){
-    state.activeBookTitle=reading[0].title;
-  }
-  pills.innerHTML=reading.map(b=>
-    `<button class="book-pill${b.title===state.activeBookTitle?' active':''}" onclick="selectBook(${JSON.stringify(b.title)})">${b.title}</button>`
-  ).join('');
 }
-
-function selectBook(title){state.activeBookTitle=title;renderBookPills();}
 
 function renderSessions(){
   const today=todayStr();
@@ -468,15 +409,20 @@ function renderSessions(){
         <div class="session-meta">${timeLabel}${s.book?' · '+s.book:''}</div>
       </div>
       <div class="session-actions">
-        <button class="session-edit" onclick="openEditSession('${s.id}')">Edit</button>
-        <button class="session-del" onclick="openEditSession('${s.id}');deleteSession()">Del</button>
+        <button class="session-edit" data-sid="${s.id}">Edit</button>
+        <button class="session-del" data-sid="${s.id}">Del</button>
       </div>
     </div>`;
   }).join('');
 }
+document.getElementById('sessions-list').addEventListener('click',function(e){
+  const editBtn=e.target.closest('.session-edit');
+  const delBtn=e.target.closest('.session-del');
+  if(editBtn)openEditSession(editBtn.dataset.sid);
+  else if(delBtn){editingSessionId=delBtn.dataset.sid;deleteSession();}
+});
 
 function h2r(hex){const h=hex.replace('#','').slice(0,6);return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
-
 function getWizardColors(lvl){
   const l=Math.min(lvl,10);
   const robes=[['#6b7280','#4b5563','#374151'],['#1e40af','#1d3a9e','#172f7a'],['#1e40af','#1a3a9a','#152e78'],['#1d4ed8','#1a3dcc','#1530a0'],['#1d4ed8','#1a3dcc','#1530a0'],['#1e50e8','#1a40d8','#1232a8'],['#1e55f0','#1a44e0','#1033b0'],['#1e5af8','#1a48e8','#1035b8'],['#1a5fff','#1648f0','#0e33c0'],['#1a5fff','#1448f8','#0c30cc'],['#1868ff','#1250ff','#0a2eee']];
@@ -485,18 +431,15 @@ function getWizardColors(lvl){
   const beardLen=[0,0,0,1,2,3,4,5,6,7,8];
   return{robe:robes[l],trim:trims[l],orb:orbs[l],beardLen:beardLen[l],hasHood:lvl>=2,hasStaff:lvl>=1,hasShoulder:lvl>=6};
 }
-
 function drawWizard(lvl){
-  const canvas=document.getElementById('wizard-canvas');
-  const S=32;canvas.width=S;canvas.height=S;
+  const canvas=document.getElementById('wizard-canvas');const S=32;canvas.width=S;canvas.height=S;
   const ctx=canvas.getContext('2d');ctx.clearRect(0,0,S,S);
   const img=ctx.createImageData(S,S);const d=img.data;
   function px(x,y,hex,a){
     if(x<0||x>=S||y<0||y>=S||!hex)return;
     const al=(a===undefined)?(hex.length>7?parseInt(hex.slice(7,9),16):255):a;
     if(al===0)return;
-    const[r,g,b]=h2r(hex);const i=(y*S+x)*4;
-    d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=al;
+    const[r,g,b]=h2r(hex);const i=(y*S+x)*4;d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=al;
   }
   const c=getWizardColors(lvl);const[rb,rm,rd]=c.robe;
   const SKIN='#e8c4a0',SKIN2='#c8a478',SKIN3='#a07850',BEARD='#d8d8d8',BEARD2='#b8b8b8',SC='#8B5e3c',SD='#6b4020';
@@ -516,8 +459,7 @@ function drawWizard(lvl){
   for(let y=13;y<=27;y++){
     const w=Math.min(4+Math.floor((y-13)*0.35),8);
     for(let x=12-Math.floor(w*0.5);x<=20+Math.floor(w*0.5);x++){
-      const shade=(x===12-Math.floor(w*0.5)||x===20+Math.floor(w*0.5))?rd:(x===13||x===19)?rm:rb;
-      px(x,y,shade);
+      const shade=(x===12-Math.floor(w*0.5)||x===20+Math.floor(w*0.5))?rd:(x===13||x===19)?rm:rb;px(x,y,shade);
     }
   }
   [12,13,14,15,16,17,18,19,20].forEach(x=>px(x,28,rm));
@@ -549,10 +491,8 @@ function drawWizard(lvl){
     if(bl>=8)[14,15,16].forEach(x=>px(x,19,BEARD));
   }
   if(c.hasHood){
-    [11,12,13].forEach(x=>{px(x,13,rd);px(x,14,rm);});
-    [12,13].forEach(x=>px(x,15,rm));
-    [19,20,21].forEach(x=>{px(x,13,rd);px(x,14,rm);});
-    [19,20].forEach(x=>px(x,15,rm));
+    [11,12,13].forEach(x=>{px(x,13,rd);px(x,14,rm);});[12,13].forEach(x=>px(x,15,rm));
+    [19,20,21].forEach(x=>{px(x,13,rd);px(x,14,rm);});[19,20].forEach(x=>px(x,15,rm));
     [12,13,14,15,16,17,18,19,20].forEach(x=>px(x,7,rd));
     [13,14,15,16,17,18,19].forEach(x=>px(x,6,rm));
     [14,15,16,17,18].forEach(x=>px(x,5,rd));
@@ -562,21 +502,13 @@ function drawWizard(lvl){
   } else {
     [13,14,15,16,17,18,19].forEach(x=>px(x,7,'#374151'));
     [14,15,16,17,18].forEach(x=>px(x,6,'#374151'));
-    [15,16,17].forEach(x=>px(x,5,'#374151'));
-    px(16,4,'#374151');
+    [15,16,17].forEach(x=>px(x,5,'#374151'));px(16,4,'#374151');
   }
-  if(lvl>=10){
-    const oc=c.orb?c.orb.slice(0,7):'#ffd700';
-    [5,7,9,11,13,15,17,19,21,23,25,27].forEach(x=>px(x,7,oc,180));
-  }
+  if(lvl>=10){const oc=c.orb?c.orb.slice(0,7):'#ffd700';[5,7,9,11,13,15,17,19,21,23,25,27].forEach(x=>px(x,7,oc,180));}
   for(let y=0;y<S;y++)for(let x=0;x<S;x++){
     const i=(y*S+x)*4;if(d[i+3]===0)continue;
     const nb=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
-    for(const[nx,ny]of nb){
-      if(nx<0||nx>=S||ny<0||ny>=S||d[(ny*S+nx)*4+3]===0){
-        d[i]=d[i]*0.55;d[i+1]=d[i+1]*0.55;d[i+2]=d[i+2]*0.55;break;
-      }
-    }
+    for(const[nx,ny]of nb){if(nx<0||nx>=S||ny<0||ny>=S||d[(ny*S+nx)*4+3]===0){d[i]=d[i]*0.55;d[i+1]=d[i+1]*0.55;d[i+2]=d[i+2]*0.55;break;}}
   }
   ctx.putImageData(img,0,0);
 }
@@ -586,26 +518,19 @@ function render(){
   const dateStr=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
   document.getElementById('date-banner').textContent=dateStr;
   document.getElementById('date-banner-lib').textContent=dateStr;
-
   const totalHrs=state.totalMinutes/60;
-  const lvl=getLevelFromHrs(totalHrs);
-  state.level=lvl;
+  const lvl=getLevelFromHrs(totalHrs);state.level=lvl;
   drawWizard(lvl);
-
   document.getElementById('char-name').textContent=state.name||'Resty';
   document.getElementById('char-title').textContent=getTitle(lvl)+' — Level '+lvl;
-
   const cumNow=cumulativeHrsToLevel(lvl);
   const hrsForNext=hrsForLevel(lvl+1);
   const hrsIntoLevel=Math.max(0,totalHrs-cumNow);
   const pct=lvl>=50?100:Math.min(100,Math.round((hrsIntoLevel/hrsForNext)*100));
   const hrsToNext=Math.max(0,Math.round((hrsForNext-hrsIntoLevel)*10)/10);
-
-  document.getElementById('xp-label').textContent=
-    (Math.round(totalHrs*10)/10)+'h / '+(Math.round((cumNow+hrsForNext)*10)/10)+'h to Level '+(lvl+1);
+  document.getElementById('xp-label').textContent=(Math.round(totalHrs*10)/10)+'h / '+(Math.round((cumNow+hrsForNext)*10)/10)+'h to Level '+(lvl+1);
   document.getElementById('xp-pct').textContent=pct+'%';
   document.getElementById('xp-fill').style.width=pct+'%';
-
   const streak=state.streak;
   document.getElementById('streak-num').textContent=streak;
   document.getElementById('streak-fire').style.display=streak>=3?'inline':'none';
@@ -614,12 +539,10 @@ function render(){
   multEl.textContent=multLabel;
   if(multLabel){const mc=getMultColors(streak);multEl.style.background=mc.bg;multEl.style.color=mc.color;}
   else{multEl.style.background='transparent';multEl.style.color='transparent';}
-
   document.getElementById('m-hrs').textContent=(Math.round(totalHrs*10)/10)+'h';
   document.getElementById('m-next').textContent=hrsToNext+'h';
   document.getElementById('m-books').textContent=finishedBooks().length;
-
-  renderBookPills();
+  renderActiveBook();
   updateQueueUI();
   renderSessions();
   renderLibrary();
@@ -627,205 +550,138 @@ function render(){
 
 function renderLibrary(){
   const lib=state.library;
-  document.getElementById('lib-meta').textContent=
-    lib.length+' book'+(lib.length!==1?'s':'')+' · '+(Math.round(state.totalMinutes/60*10)/10)+'h total';
-  if(lib.length===0){
-    document.getElementById('book-list').innerHTML=
-      '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3)">No books yet. Add your first one!</div>';
-    return;
-  }
+  document.getElementById('lib-meta').textContent=lib.length+' book'+(lib.length!==1?'s':'')+' · '+(Math.round(state.totalMinutes/60*10)/10)+'h total';
+  if(lib.length===0){document.getElementById('book-list').innerHTML='<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3)">No books yet. Add your first one!</div>';return;}
   const colors=['#1e40af','#16a34a','#d97706','#db2777','#7c3aed','#0891b2','#dc2626'];
   const bgs=['#dbeafe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#cffafe','#fee2e2'];
-  let html='';
-  lib.forEach((book,i)=>{
+  document.getElementById('book-list').innerHTML=lib.map((book,i)=>{
     const ci=i%colors.length;
-    const statusTag=book.status==='reading'?'<span class="btag tag-reading">Reading</span>':
-      book.status==='finished'?'<span class="btag tag-done">Finished</span>':
-      '<span class="btag tag-unread">Unread</span>';
-    html+=`<div class="book-item" onclick="openEditBook(${JSON.stringify(book.title)})">
-      <div class="book-spine" style="background:${bgs[ci]}">
-        <svg width="16" height="20" viewBox="0 0 16 20"><rect width="16" height="20" rx="2" fill="${colors[ci]}"/><rect x="3" y="4" width="10" height="1.5" rx="0.5" fill="white" opacity="0.6"/><rect x="3" y="7" width="7" height="1.5" rx="0.5" fill="white" opacity="0.4"/></svg>
-      </div>
+    const statusTag=book.status==='reading'?'<span class="btag tag-reading">Reading</span>':book.status==='finished'?'<span class="btag tag-done">Finished</span>':'<span class="btag tag-unread">Unread</span>';
+    return `<div class="book-item" data-lib-idx="${i}">
+      <div class="book-spine" style="background:${bgs[ci]}"><svg width="16" height="20" viewBox="0 0 16 20"><rect width="16" height="20" rx="2" fill="${colors[ci]}"/><rect x="3" y="4" width="10" height="1.5" rx="0.5" fill="white" opacity="0.6"/><rect x="3" y="7" width="7" height="1.5" rx="0.5" fill="white" opacity="0.4"/></svg></div>
       <div class="book-info">
         <div class="book-name">${book.title}</div>
         <div class="book-auth">${book.author||''}</div>
-        <div class="book-tags">
-          ${statusTag}
-          ${book.minutes>0?'<span class="btag tag-hrs">'+fmtHrs(book.minutes)+'</span>':''}
-          ${book.levelStart!==undefined&&book.levelEnd>book.levelStart?'<span class="btag tag-lvl">Lv '+book.levelStart+' → '+book.levelEnd+'</span>':''}
-        </div>
+        <div class="book-tags">${statusTag}${book.minutes>0?'<span class="btag tag-hrs">'+fmtHrs(book.minutes)+'</span>':''}${book.levelStart!==undefined&&book.levelEnd>book.levelStart?'<span class="btag tag-lvl">Lv '+book.levelStart+' → '+book.levelEnd+'</span>':''}</div>
       </div>
       <div class="book-edit-arrow">›</div>
     </div>`;
-  });
-  document.getElementById('book-list').innerHTML=html;
+  }).join('');
 }
+document.getElementById('book-list').addEventListener('click',function(e){
+  const item=e.target.closest('.book-item');
+  if(!item)return;
+  const idx=parseInt(item.dataset.libIdx,10);
+  if(!isNaN(idx))openEditBook(state.library[idx].title);
+});
 
 function addTime(mins){pendingMinutes+=mins;updateQueueUI();}
 
 function logSession(){
+  const active=getActiveBook();
+  if(!active){showMsg('Add a book in Library first.',false);return;}
   if(pendingMinutes===0){showMsg('Tap a time button first.',false);return;}
   const today=todayStr();
   const mult=getMultiplier(state.streak);
   const effective=pendingMinutes*mult;
   state.totalMinutes+=effective;
-
   if(state.lastReadDate!==today){
     const gap=daysBetween(state.lastReadDate,today);
     if(gap<=1||(gap===2&&state.gracePending)){state.streak++;state.gracePending=false;}
     else{state.streak=1;state.gracePending=false;}
     state.lastReadDate=today;
   }
-
-  const bookTitle=state.activeBookTitle||'';
-  if(bookTitle){
-    const bi=state.library.findIndex(b=>b.title===bookTitle);
-    if(bi>=0){
-      state.library[bi].minutes=(state.library[bi].minutes||0)+effective;
-      state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
-    }
+  const bi=state.library.findIndex(b=>b.title===active.title);
+  if(bi>=0){
+    state.library[bi].minutes=(state.library[bi].minutes||0)+effective;
+    state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
   }
-
   if(!state.sessions)state.sessions=[];
-  state.sessions.push({
-    id:'s_'+Date.now(),date:today,timestamp:Date.now(),
-    rawMinutes:pendingMinutes,effectiveMinutes:effective,
-    multiplier:mult,book:bookTitle
-  });
-
+  state.sessions.push({id:'s_'+Date.now(),date:today,timestamp:Date.now(),rawMinutes:pendingMinutes,effectiveMinutes:effective,multiplier:mult,book:active.title});
   const oldLvl=state.level;
-  const newLvl=getLevelFromHrs(state.totalMinutes/60);
-  state.level=newLvl;
-
+  const newLvl=getLevelFromHrs(state.totalMinutes/60);state.level=newLvl;
   if(newLvl>oldLvl){
     showMsg('Level up! You are now '+getTitle(newLvl)+' — Level '+newLvl+'.',true);
+    const canvas=document.getElementById('wizard-canvas');
+    canvas.style.animation='none';void canvas.offsetWidth;
+    canvas.style.animation='wizFloat 3s ease-in-out infinite,wizIn 0.6s cubic-bezier(0.34,1.56,0.64,1) both';
   } else {
     const label=fmtMins(pendingMinutes)+(mult>1?' × '+mult+' = '+fmtHrs(effective):'');
-    showMsg(label+' logged.',true);
+    showMsg(label+' logged to "'+active.title+'".',true);
   }
-
-  pendingMinutes=0;
-  saveState();render();
+  pendingMinutes=0;saveState();render();
 }
 
 function openEditSession(id){
-  const s=state.sessions.find(x=>x.id===id);
-  if(!s)return;
+  const s=state.sessions.find(x=>x.id===id);if(!s)return;
   editingSessionId=id;
   document.getElementById('edit-session-mins').value=s.rawMinutes;
   const t=new Date(s.timestamp);
-  const timeLabel=t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
-  document.getElementById('edit-session-subtitle').textContent=
-    'Session at '+timeLabel+(s.multiplier>1?' · '+s.multiplier+'x multiplier':'');
+  document.getElementById('edit-session-subtitle').textContent='Session at '+t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'})+(s.multiplier>1?' · '+s.multiplier+'x multiplier':'');
   document.getElementById('modal-edit-session').className='modal-overlay open';
 }
-
 function saveEditSession(){
   if(!editingSessionId)return;
-  const idx=state.sessions.findIndex(x=>x.id===editingSessionId);
-  if(idx<0)return;
+  const idx=state.sessions.findIndex(x=>x.id===editingSessionId);if(idx<0)return;
   const s=state.sessions[idx];
-  const newRaw=parseInt(document.getElementById('edit-session-mins').value)||0;
-  if(newRaw<=0)return;
-  const newEffective=newRaw*s.multiplier;
-  const diff=newEffective-s.effectiveMinutes;
+  const newRaw=parseInt(document.getElementById('edit-session-mins').value)||0;if(newRaw<=0)return;
+  const newEffective=newRaw*s.multiplier;const diff=newEffective-s.effectiveMinutes;
   state.totalMinutes=Math.max(0,state.totalMinutes+diff);
-  if(s.book){
-    const bi=state.library.findIndex(b=>b.title===s.book);
-    if(bi>=0){
-      state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)+diff);
-      state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
-    }
-  }
+  if(s.book){const bi=state.library.findIndex(b=>b.title===s.book);if(bi>=0){state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)+diff);state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);}}
   state.sessions[idx]={...s,rawMinutes:newRaw,effectiveMinutes:newEffective};
-  editingSessionId=null;
-  closeModal('modal-edit-session');
-  saveState();render();showMsg('Session updated.',true);
+  editingSessionId=null;closeModal('modal-edit-session');saveState();render();showMsg('Session updated.',true);
 }
-
 function deleteSession(){
   if(!editingSessionId)return;
-  const idx=state.sessions.findIndex(x=>x.id===editingSessionId);
-  if(idx<0)return;
+  const idx=state.sessions.findIndex(x=>x.id===editingSessionId);if(idx<0)return;
   const s=state.sessions[idx];
   state.totalMinutes=Math.max(0,state.totalMinutes-s.effectiveMinutes);
-  if(s.book){
-    const bi=state.library.findIndex(b=>b.title===s.book);
-    if(bi>=0){
-      state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)-s.effectiveMinutes);
-      state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
-    }
-  }
+  if(s.book){const bi=state.library.findIndex(b=>b.title===s.book);if(bi>=0){state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)-s.effectiveMinutes);state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);}}
   state.sessions.splice(idx,1);
-  editingSessionId=null;
-  closeModal('modal-edit-session');
-  saveState();render();showMsg('Session removed.',false);
+  editingSessionId=null;closeModal('modal-edit-session');saveState();render();showMsg('Session removed.',false);
 }
 
 function openAddBook(){
-  document.getElementById('add-book-title').value='';
-  document.getElementById('add-book-author').value='';
-  addingStatus='reading';
-  applyStatusPills('add-status-pills','reading');
-  document.getElementById('add-book-warning').style.display=readingBooks().length>=3?'block':'none';
+  document.getElementById('add-book-title').value='';document.getElementById('add-book-author').value='';
+  addingStatus='reading';applyStatusPills('add-status-pills','reading');
+  document.getElementById('add-book-warning').style.display=getActiveBook()?'block':'none';
   document.getElementById('modal-add-book').className='modal-overlay open';
 }
-
 function saveNewBook(){
   const title=document.getElementById('add-book-title').value.trim();
   const author=document.getElementById('add-book-author').value.trim();
   if(!title)return;
-  if(addingStatus==='reading'&&readingBooks().length>=3){
-    showMsg('Finish or pause a book first — max 3 in progress.',false);return;
-  }
-  const exists=state.library.find(b=>b.title===title);
-  if(!exists){
+  if(addingStatus==='reading'&&getActiveBook()){showMsg('Mark current book finished or unread first.',false);return;}
+  if(!state.library.find(b=>b.title===title)){
     state.library.push({title,author,minutes:0,status:addingStatus,levelStart:state.level,levelEnd:state.level});
-    if(addingStatus==='reading'&&!state.activeBookTitle)state.activeBookTitle=title;
   }
   closeModal('modal-add-book');saveState();render();
 }
 
 function openEditBook(title){
-  const book=state.library.find(b=>b.title===title);
-  if(!book)return;
-  editingBookTitle=title;
-  editingStatus=book.status||'unread';
+  const book=state.library.find(b=>b.title===title);if(!book)return;
+  editingBookTitle=title;editingStatus=book.status||'unread';
   document.getElementById('edit-book-title').value=book.title;
   document.getElementById('edit-book-author').value=book.author||'';
-  applyStatusPills('edit-status-pills', editingStatus);
+  applyStatusPills('edit-status-pills',editingStatus);
   document.getElementById('edit-book-warning').style.display='none';
   document.getElementById('modal-edit-book').className='modal-overlay open';
 }
-
 function saveEditBook(){
-  const idx=state.library.findIndex(b=>b.title===editingBookTitle);
-  if(idx<0)return;
+  const idx=state.library.findIndex(b=>b.title===editingBookTitle);if(idx<0)return;
   const book=state.library[idx];
   const newTitle=document.getElementById('edit-book-title').value.trim();
   const newAuthor=document.getElementById('edit-book-author').value.trim();
   if(!newTitle)return;
-  const wasReading=book.status==='reading';
-  // Only block if switching TO reading and we're already at the cap (excluding this book)
-  const otherReadingCount=readingBooks().filter(b=>b.title!==editingBookTitle).length;
-  if(editingStatus==='reading'&&otherReadingCount>=3){
-    showMsg('Finish or pause a book first — max 3 in progress.',false);return;
-  }
-  if(state.activeBookTitle===editingBookTitle)state.activeBookTitle=newTitle;
-  // If marking finished and this was the active book, clear active
-  if(editingStatus!=='reading'&&state.activeBookTitle===newTitle)state.activeBookTitle='';
+  const otherReading=state.library.find(b=>b.status==='reading'&&b.title!==editingBookTitle);
+  if(editingStatus==='reading'&&otherReading){showMsg('Mark "'+otherReading.title+'" finished or unread first.',false);return;}
   state.library[idx]={...book,title:newTitle,author:newAuthor,status:editingStatus};
-  editingBookTitle=null;
-  closeModal('modal-edit-book');saveState();render();
+  editingBookTitle=null;closeModal('modal-edit-book');saveState();render();
 }
-
 function deleteBook(){
-  const idx=state.library.findIndex(b=>b.title===editingBookTitle);
-  if(idx<0)return;
-  if(state.activeBookTitle===editingBookTitle)state.activeBookTitle='';
+  const idx=state.library.findIndex(b=>b.title===editingBookTitle);if(idx<0)return;
   state.library.splice(idx,1);
-  editingBookTitle=null;
-  closeModal('modal-edit-book');saveState();render();
+  editingBookTitle=null;closeModal('modal-edit-book');saveState();render();
 }
 
 function showMsg(text,good){
@@ -833,7 +689,6 @@ function showMsg(text,good){
   el.textContent=text;el.className='msg '+(good?'good':'bad');el.style.opacity='1';
   clearTimeout(el._t);el._t=setTimeout(()=>{el.style.opacity='0';},4000);
 }
-
 function showScreen(name){
   document.getElementById('screen-home').className='screen'+(name==='home'?' visible':'');
   document.getElementById('screen-library').className='screen'+(name==='library'?' visible':'');
@@ -842,38 +697,16 @@ function showScreen(name){
     document.getElementById('tab-lbl-'+s).className='tab-lbl'+(s===name?' active':'');
   });
 }
-
-function openProfile(){
-  document.getElementById('input-name').value=state.name||'';
-  document.getElementById('modal-profile').className='modal-overlay open';
-}
-function saveProfile(){
-  const name=document.getElementById('input-name').value.trim();
-  if(name)state.name=name;
-  closeModal('modal-profile');saveState();render();
-}
-
+function openProfile(){document.getElementById('input-name').value=state.name||'';document.getElementById('modal-profile').className='modal-overlay open';}
+function saveProfile(){const name=document.getElementById('input-name').value.trim();if(name)state.name=name;closeModal('modal-profile');saveState();render();}
 function closeModal(id){document.getElementById(id).className='modal-overlay';}
-document.querySelectorAll('.modal-overlay').forEach(m=>{
-  m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});
-});
+document.querySelectorAll('.modal-overlay').forEach(m=>{m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});});
 
-// Wire up status pill event delegation after DOM is ready
-setupStatusPills(
-  'add-status-pills',
-  ()=>addingStatus,
-  s=>{addingStatus=s;},
-  s=>s==='reading'&&readingBooks().length>=3
-);
-setupStatusPills(
-  'edit-status-pills',
-  ()=>editingStatus,
-  s=>{editingStatus=s;},
-  s=>{
-    const otherReadingCount=readingBooks().filter(b=>b.title!==editingBookTitle).length;
-    return s==='reading'&&otherReadingCount>=3;
-  }
-);
+setupStatusPills('add-status-pills',()=>addingStatus,s=>{addingStatus=s;},s=>s==='reading'&&!!getActiveBook());
+setupStatusPills('edit-status-pills',()=>editingStatus,s=>{editingStatus=s;},s=>{
+  const otherReading=state.library.find(b=>b.status==='reading'&&b.title!==editingBookTitle);
+  return s==='reading'&&!!otherReading;
+});
 
 checkStreak();
 render();
