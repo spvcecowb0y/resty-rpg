@@ -3,144 +3,326 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<title>Resty RPG</title>
+<title>Reading RPG</title>
 <link rel="manifest" href="manifest.json"/>
-<meta name="theme-color" content="#185FA5"/>
+<meta name="theme-color" content="#1e40af"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
 <meta name="apple-mobile-web-app-status-bar-style" content="default"/>
-<meta name="apple-mobile-web-app-title" content="Resty RPG"/>
+<meta name="apple-mobile-web-app-title" content="Reading RPG"/>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
   --bg:#ffffff;--bg2:#f5f5f3;--bg3:#ebebea;
   --text:#1a1a18;--text2:#6b6b67;--text3:#9b9b97;
-  --blue:#378ADD;--blue-dark:#185FA5;
-  --blue-bg:#E6F1FB;--blue-text:#0C447C;
-  --green:#1D9E75;--green-bg:#E1F5EE;--green-text:#085041;
-  --purple:#7F77DD;--purple-bg:#EEEDFE;--purple-text:#3C3489;
-  --red:#E24B4A;--red-bg:#FCEBEB;--red-text:#791F1F;
-  --amber-bg:#FAEEDA;--amber-text:#633806;
-  --border:rgba(0,0,0,0.1);--border2:rgba(0,0,0,0.18);
-  --radius:8px;--radius-lg:12px;
+  --blue:#1e40af;--blue-bg:#E6F1FB;--blue-text:#1e3a8a;
+  --green:#1D9E75;--red:#E24B4A;--red-text:#791F1F;--red-bg:#FCEBEB;
+  --border:rgba(0,0,0,0.09);--border2:rgba(0,0,0,0.18);
+  --radius:8px;--radius-lg:14px;
 }
 @media(prefers-color-scheme:dark){:root{
   --bg:#1c1c1a;--bg2:#252522;--bg3:#2e2e2b;
   --text:#f0f0ec;--text2:#9b9b97;--text3:#6b6b67;
-  --blue-bg:#0C447C;--blue-text:#B5D4F4;
-  --green-bg:#085041;--green-text:#9FE1CB;
-  --purple-bg:#26215C;--purple-text:#CECBF6;
-  --red-bg:#501313;--red-text:#F7C1C1;
-  --amber-bg:#412402;--amber-text:#FAC775;
-  --border:rgba(255,255,255,0.1);--border2:rgba(255,255,255,0.18);
+  --blue-bg:#1e3a5f;--blue-text:#93c5fd;
+  --red-bg:#501313;--red-text:#fca5a5;
+  --border:rgba(255,255,255,0.09);--border2:rgba(255,255,255,0.18);
 }}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;background:var(--bg3);color:var(--text);min-height:100vh}
-.app{max-width:420px;margin:0 auto;padding:1.25rem 1rem 3rem}
-.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:1.25rem;margin-bottom:0.875rem}
-.char-row{display:flex;align-items:center;gap:1rem}
-.wizard-wrap{width:84px;height:84px;flex-shrink:0}
-.wizard-wrap canvas{image-rendering:pixelated;width:84px;height:84px}
-.char-name{font-size:18px;font-weight:600;color:var(--text)}
-.char-title{font-size:13px;color:var(--text2);margin-top:3px}
-.char-sub{font-size:12px;color:var(--text3);margin-top:6px}
-.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:0.875rem}
-.metric{background:var(--bg2);border-radius:var(--radius);padding:10px;text-align:center}
-.metric-val{font-size:22px;font-weight:600;color:var(--text)}
-.metric-lbl{font-size:11px;color:var(--text2);margin-top:2px;letter-spacing:0.02em}
-.skill-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:0.875rem}
-.skill-name{font-size:15px;font-weight:600;color:var(--text)}
-.skill-book{font-size:12px;color:var(--text3);margin-top:3px}
-.badge{font-size:12px;font-weight:500;padding:3px 10px;border-radius:var(--radius);white-space:nowrap}
-.prog-row{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);margin-bottom:5px}
-.track{background:var(--bg2);border-radius:99px;height:7px;overflow:hidden}
-.fill{height:100%;border-radius:99px;transition:width 0.5s ease,background 0.5s ease}
-.pips{display:flex;gap:4px;margin-top:10px;flex-wrap:wrap}
-.pip{width:20px;height:20px;border-radius:4px;border:0.5px solid var(--border);background:var(--bg2);transition:background 0.3s;flex-shrink:0}
-.pip.done{border-color:transparent}
-.pip.next{border-width:1.5px}
-.actions{display:flex;gap:8px;margin-top:1rem}
-button{font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;border-radius:var(--radius);padding:9px 12px;transition:opacity 0.15s,background 0.15s;border:0.5px solid var(--border2);background:transparent;color:var(--text)}
-button:active{transform:scale(0.98)}
-.btn-check{flex:1;background:var(--blue-bg);color:var(--blue-text);border-color:transparent}
-.btn-miss{color:var(--red-text);border-color:var(--red-text)}
-.msg{font-size:13px;text-align:center;margin-top:8px;min-height:18px;transition:opacity 0.3s}
+.app{max-width:420px;margin:0 auto;padding:0 0 80px}
+.date-banner{background:var(--blue-bg);padding:10px 14px;font-size:12px;color:var(--blue-text);text-align:center;font-weight:500}
+.inner{padding:10px 12px;display:flex;flex-direction:column;gap:9px}
+.card{background:var(--bg);border:0.5px solid var(--border);border-radius:var(--radius-lg);padding:13px 14px}
+.char-row{display:flex;align-items:center;gap:11px}
+.wiz-wrap{width:72px;height:72px;flex-shrink:0}
+.wiz-wrap canvas{image-rendering:pixelated;width:72px;height:72px}
+.char-right{flex:1;min-width:0}
+.char-top{display:flex;justify-content:space-between;align-items:flex-start}
+.char-name{font-size:16px;font-weight:700;color:var(--text)}
+.profile-btn{font-size:10px;color:var(--blue-text);background:var(--blue-bg);padding:3px 8px;border-radius:6px;cursor:pointer;border:none;font-family:inherit;font-weight:600}
+.char-title{font-size:11px;color:var(--text2);margin-top:2px}
+.xp-row{display:flex;justify-content:space-between;font-size:10px;color:var(--text3);margin:7px 0 3px}
+.xp-track{background:var(--bg2);border-radius:99px;height:5px;overflow:hidden}
+.xp-fill{height:100%;border-radius:99px;background:var(--blue);transition:width 0.5s ease}
+.streak-inline{display:flex;align-items:center;gap:5px;margin-top:7px}
+.streak-num{font-size:13px;font-weight:700;color:var(--text)}
+.streak-lbl{font-size:11px;color:var(--text2)}
+.streak-mult{font-size:10px;font-weight:700;padding:2px 7px;border-radius:5px;margin-left:auto}
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.met{background:var(--bg2);border-radius:var(--radius);padding:8px 6px;text-align:center}
+.met-val{font-size:15px;font-weight:700;color:var(--text);line-height:1.2}
+.met-lbl{font-size:9px;color:var(--text3);margin-top:2px;letter-spacing:0.02em}
+.log-title{font-size:11px;font-weight:600;color:var(--text2);margin-bottom:6px}
+.log-book{font-size:10px;color:var(--text3);margin-bottom:9px}
+.log-book span{color:var(--text);font-weight:500}
+.log-btns{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-bottom:6px}
+.lb{background:var(--blue-bg);color:var(--blue-text);border-radius:8px;padding:8px 2px;font-size:12px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;transition:opacity 0.15s}
+.lb:active{opacity:0.7}
+.lb-main{background:var(--blue);color:#fff;border-radius:8px;padding:10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;width:100%;transition:opacity 0.15s}
+.lb-main:active{opacity:0.8}
+.msg{font-size:12px;text-align:center;margin-top:7px;min-height:16px;transition:opacity 0.3s}
 .msg.good{color:var(--green)}
 .msg.bad{color:var(--red)}
-.date-banner{background:var(--blue-bg);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--blue-text);margin-bottom:0.875rem;text-align:center}
+.tab-bar{position:fixed;bottom:0;left:0;right:0;max-width:420px;margin:0 auto;background:var(--bg);border-top:0.5px solid var(--border);display:flex;justify-content:space-around;padding:8px 0 16px}
+.tab{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;border:none;background:none;font-family:inherit;padding:0 20px}
+.tab-dot{width:20px;height:20px;border-radius:5px;background:var(--bg2)}
+.tab-dot.active{background:var(--blue)}
+.tab-lbl{font-size:9px;color:var(--text3);font-weight:500}
+.tab-lbl.active{color:var(--blue);font-weight:700}
+.screen{display:none}
+.screen.visible{display:block}
+.lib-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:2px}
+.lib-title{font-size:15px;font-weight:700;color:var(--text)}
+.lib-meta{font-size:11px;color:var(--text3)}
+.book-item{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:0.5px solid var(--border)}
+.book-item:last-child{border-bottom:none;padding-bottom:0}
+.book-spine{width:36px;height:48px;border-radius:4px;flex-shrink:0;display:flex;align-items:center;justify-content:center}
+.book-info{flex:1;min-width:0}
+.book-name{font-size:12px;font-weight:600;color:var(--text)}
+.book-auth{font-size:10px;color:var(--text3);margin-top:1px}
+.book-tags{display:flex;gap:5px;margin-top:5px;flex-wrap:wrap}
+.btag{font-size:9px;padding:2px 6px;border-radius:4px;font-weight:600}
+.tag-now{background:var(--blue-bg);color:var(--blue-text)}
+.tag-done{background:#dcfce7;color:#065f46}
+.tag-hrs{background:var(--bg2);color:var(--text2)}
+.tag-lvl{background:#ede9fe;color:#4c1d95}
+@media(prefers-color-scheme:dark){.tag-done{background:#064e3b;color:#6ee7b7}.tag-lvl{background:#3b0764;color:#c4b5fd}}
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;justify-content:center}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:420px}
+.modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.modal-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.modal-label{font-size:11px;font-weight:600;color:var(--text2)}
+.modal-input{font-size:14px;padding:9px 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit;width:100%}
+.modal-actions{display:flex;gap:8px;margin-top:6px}
+.btn-save{flex:1;background:var(--blue);color:#fff;border:none;border-radius:var(--radius);padding:10px;font-size:13px;font-weight:700;font-family:inherit;cursor:pointer}
+.btn-cancel{background:var(--bg2);color:var(--text2);border:none;border-radius:var(--radius);padding:10px 14px;font-size:13px;font-family:inherit;cursor:pointer}
+.add-book-btn{width:100%;background:var(--bg2);color:var(--text2);border:0.5px dashed var(--border2);border-radius:var(--radius);padding:10px;font-size:12px;font-family:inherit;cursor:pointer;margin-top:4px}
 </style>
 </head>
 <body>
+
 <div class="app">
-  <div class="date-banner" id="date-banner"></div>
-  <div class="card">
-    <div class="char-row">
-      <div class="wizard-wrap"><canvas id="wizard-canvas" width="32" height="32"></canvas></div>
-      <div>
-        <div class="char-name">Resty</div>
-        <div class="char-title" id="char-title">Novice — Level 0</div>
-        <div class="char-sub">Total days logged: <span id="total-days">0</span></div>
+  <div id="screen-home" class="screen visible">
+    <div class="date-banner" id="date-banner"></div>
+    <div class="inner">
+
+      <div class="card">
+        <div class="char-row">
+          <div class="wiz-wrap"><canvas id="wizard-canvas" width="32" height="32"></canvas></div>
+          <div class="char-right">
+            <div class="char-top">
+              <div>
+                <div class="char-name" id="char-name">Resty</div>
+                <div class="char-title" id="char-title">Novice — Level 0</div>
+              </div>
+              <button class="profile-btn" onclick="openProfile()">Profile</button>
+            </div>
+            <div class="xp-row">
+              <span id="xp-label">0h / 1h to Level 1</span>
+              <span id="xp-pct">0%</span>
+            </div>
+            <div class="xp-track"><div class="xp-fill" id="xp-fill" style="width:0%"></div></div>
+            <div class="streak-inline">
+              <span id="streak-fire" style="font-size:13px;line-height:1;display:none">🔥</span>
+              <span class="streak-num" id="streak-num">0</span>
+              <span class="streak-lbl">day streak</span>
+              <span class="streak-mult" id="streak-mult"></span>
+            </div>
+          </div>
+        </div>
       </div>
+
+      <div class="metrics">
+        <div class="met"><div class="met-val" id="m-hrs">0h</div><div class="met-lbl">Hours read</div></div>
+        <div class="met"><div class="met-val" id="m-next">1h</div><div class="met-lbl">To next level</div></div>
+        <div class="met"><div class="met-val" id="m-books">0</div><div class="met-lbl">Books read</div></div>
+      </div>
+
+      <div class="card">
+        <div class="log-title">Log reading time</div>
+        <div class="log-book">Currently: <span id="current-book-label">—</span></div>
+        <div class="log-btns">
+          <button class="lb" onclick="addTime(15)">+15m</button>
+          <button class="lb" onclick="addTime(30)">+30m</button>
+          <button class="lb" onclick="addTime(60)">+1hr</button>
+          <button class="lb" onclick="addTime(120)">+2hr</button>
+        </div>
+        <button class="lb-main" onclick="logSession()">Log session</button>
+        <div class="msg" id="msg"></div>
+      </div>
+
     </div>
   </div>
-  <div class="metrics">
-    <div class="metric"><div class="metric-val" id="m-lvl">0</div><div class="metric-lbl">Level</div></div>
-    <div class="metric"><div class="metric-val" id="m-str">0</div><div class="metric-lbl">Streak</div></div>
-    <div class="metric"><div class="metric-val" id="m-nxt">1</div><div class="metric-lbl">Days left</div></div>
-  </div>
-  <div class="card">
-    <div class="skill-header">
-      <div>
-        <div class="skill-name">Reading</div>
-        <div class="skill-book" id="skill-book">Flow — Mihaly Csikszentmihalyi</div>
+
+  <div id="screen-library" class="screen">
+    <div class="date-banner" id="date-banner-lib"></div>
+    <div class="inner">
+      <div class="card">
+        <div class="lib-header">
+          <div class="lib-title">Your library</div>
+          <div class="lib-meta" id="lib-meta">0 books</div>
+        </div>
       </div>
-      <div class="badge" id="badge"></div>
+      <div class="card" id="book-list"></div>
+      <button class="add-book-btn" onclick="openAddBook()">+ Add book</button>
     </div>
-    <div class="prog-row">
-      <span id="prog-text">0 / 1 consecutive days</span>
-      <span id="prog-pct">0%</span>
-    </div>
-    <div class="track"><div class="fill" id="fill" style="width:0%"></div></div>
-    <div class="pips" id="pips"></div>
-    <div class="actions">
-      <button class="btn-check" id="btn-check" onclick="checkIn()">Check in today ✓</button>
-      <button class="btn-miss" onclick="confirmMiss()">Miss a day ✗</button>
-    </div>
-    <div class="msg" id="msg"></div>
+  </div>
+
+  <div class="tab-bar">
+    <button class="tab" onclick="showScreen('home')">
+      <div class="tab-dot active" id="tab-dot-home"></div>
+      <div class="tab-lbl active" id="tab-lbl-home">Home</div>
+    </button>
+    <button class="tab" onclick="showScreen('library')">
+      <div class="tab-dot" id="tab-dot-library"></div>
+      <div class="tab-lbl" id="tab-lbl-library">Library</div>
+    </button>
   </div>
 </div>
+
+<div class="modal-overlay" id="modal-profile">
+  <div class="modal">
+    <div class="modal-title">Profile</div>
+    <div class="modal-row">
+      <div class="modal-label">Your name</div>
+      <input class="modal-input" id="input-name" type="text" placeholder="Your name"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Current book</div>
+      <input class="modal-input" id="input-book-title" type="text" placeholder="Book title"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Author</div>
+      <input class="modal-input" id="input-book-author" type="text" placeholder="Author"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-profile')">Cancel</button>
+      <button class="btn-save" onclick="saveProfile()">Save</button>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modal-add-book">
+  <div class="modal">
+    <div class="modal-title">Add book</div>
+    <div class="modal-row">
+      <div class="modal-label">Title</div>
+      <input class="modal-input" id="add-book-title" type="text" placeholder="Book title"/>
+    </div>
+    <div class="modal-row">
+      <div class="modal-label">Author</div>
+      <input class="modal-input" id="add-book-author" type="text" placeholder="Author"/>
+    </div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal('modal-add-book')">Cancel</button>
+      <button class="btn-save" onclick="saveNewBook()">Add to library</button>
+    </div>
+  </div>
+</div>
+
 <script>
-const FIB=[0,1,2,3,5,8,13,21,34,55,89];
-const TITLES=['Novice','Novice','Apprentice','Apprentice','Journeyman','Journeyman','Adept','Adept','Expert','Expert','Master'];
-const FILL_COLORS=['#1e40af','#1e40af','#1d4ed8','#1d4ed8','#1e50e8','#1e50e8','#1e55f0','#1e5af8','#1a5fff','#1a5fff','#1868ff'];
-const BADGE_BG=['#E6F1FB','#E6F1FB','#E6F1FB','#dbeafe','#dbeafe','#dbeafe','#ede9fe','#ede9fe','#ede9fe','#dbeafe','#dbeafe'];
-const BADGE_TEXT=['#1e40af','#1e40af','#1e3a8a','#1e3a8a','#1e3a8a','#1e3a8a','#4c1d95','#4c1d95','#4c1d95','#1e3a8a','#1e3a8a'];
+const RAW_FIB=[0,1,1,2,3,5,8,13,21,34,55,89,144,233];
+const TARGET=3650,FIB_LEVELS=13;
+const fibSum=RAW_FIB.slice(1,14).reduce((a,b)=>a+b,0);
+const remaining=TARGET-fibSum;
+const linearLevels=50-FIB_LEVELS;
+const step=remaining/(linearLevels+linearLevels*(linearLevels-1)/2);
+
+function hrsForLevel(l){
+  if(l<=FIB_LEVELS)return RAW_FIB[l];
+  const pos=l-FIB_LEVELS;
+  return Math.round(step*pos*10)/10;
+}
+
+function cumulativeHrsToLevel(l){
+  let c=0;for(let i=1;i<=l;i++)c+=hrsForLevel(i);return Math.round(c*10)/10;
+}
+
+const TITLES=['Novice','Novice','Apprentice','Apprentice','Journeyman','Journeyman','Adept','Adept','Expert','Expert','Mystic Reader','Mystic Reader','Lorekeeper','Lorekeeper','Sage','Sage','Archivist','Archivist','Illuminated','Illuminated','Chronicler','Chronicler','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Grand Sage','Legend'];
+
+function getTitle(lvl){return TITLES[Math.min(lvl,TITLES.length-1)]||'Legend';}
+
+function getMultiplier(streak){
+  if(streak>=30)return 2;
+  if(streak>=14)return 1.75;
+  if(streak>=7)return 1.5;
+  if(streak>=3)return 1.25;
+  return 1;
+}
+
+function getMultLabel(streak){
+  const m=getMultiplier(streak);
+  if(m===1)return '';
+  return m+'x XP';
+}
+
+function getMultColors(streak){
+  if(streak>=30)return{bg:'#ffedd5',color:'#9a3412'};
+  if(streak>=14)return{bg:'#ede9fe',color:'#6d28d9'};
+  if(streak>=7)return{bg:'#E6F1FB',color:'#1e40af'};
+  if(streak>=3)return{bg:'#ccfbf1',color:'#0f766e'};
+  return{bg:'transparent',color:'transparent'};
+}
+
+function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+
+function daysBetween(a,b){if(!a)return 999;return Math.round((new Date(b)-new Date(a))/(864e5));}
+
+function loadState(){
+  const r=localStorage.getItem('reading_rpg_v2');
+  if(r)return JSON.parse(r);
+  return{
+    name:'Resty',
+    totalMinutes:0,
+    streak:0,
+    lastReadDate:null,
+    gracePending:false,
+    sessionMinutes:0,
+    currentBook:{title:'',author:''},
+    library:[],
+    level:0
+  };
+}
+
+function saveState(){localStorage.setItem('reading_rpg_v2',JSON.stringify(state));}
+
+function getLevelFromHrs(hrs){
+  let lvl=0,cum=0;
+  for(let i=1;i<=50;i++){
+    cum+=hrsForLevel(i);
+    if(hrs>=cum)lvl=i;else break;
+  }
+  return lvl;
+}
+
+function checkStreak(){
+  const today=todayStr();
+  if(!state.lastReadDate)return;
+  const gap=daysBetween(state.lastReadDate,today);
+  if(gap===0)return;
+  if(gap===1)return;
+  if(gap===2&&!state.gracePending){state.gracePending=true;saveState();return;}
+  if(gap>=2&&state.gracePending){state.streak=0;state.gracePending=false;saveState();}
+  if(gap>=3){state.streak=0;state.gracePending=false;saveState();}
+}
+
+let state=loadState();
+let pendingMinutes=0;
+
+function h2r(hex){const h=hex.replace('#','').slice(0,6);return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 
 function getWizardColors(lvl){
-  const robes=[
-    ['#6b7280','#4b5563','#374151'],
-    ['#1e40af','#1d3a9e','#172f7a'],
-    ['#1e40af','#1a3a9a','#152e78'],
-    ['#1d4ed8','#1a3dcc','#1530a0'],
-    ['#1d4ed8','#1a3dcc','#1530a0'],
-    ['#1e50e8','#1a40d8','#1232a8'],
-    ['#1e55f0','#1a44e0','#1033b0'],
-    ['#1e5af8','#1a48e8','#1035b8'],
-    ['#1a5fff','#1648f0','#0e33c0'],
-    ['#1a5fff','#1448f8','#0c30cc'],
-    ['#1868ff','#1250ff','#0a2eee'],
-  ];
+  const l=Math.min(lvl,10);
+  const robes=[['#6b7280','#4b5563','#374151'],['#1e40af','#1d3a9e','#172f7a'],['#1e40af','#1a3a9a','#152e78'],['#1d4ed8','#1a3dcc','#1530a0'],['#1d4ed8','#1a3dcc','#1530a0'],['#1e50e8','#1a40d8','#1232a8'],['#1e55f0','#1a44e0','#1033b0'],['#1e5af8','#1a48e8','#1035b8'],['#1a5fff','#1648f0','#0e33c0'],['#1a5fff','#1448f8','#0c30cc'],['#1868ff','#1250ff','#0a2eee']];
   const trims=[null,null,null,'#b8860b','#c8960c','#d4a20e','#daa520','#e0b030','#f0c030','#f5cc40','#ffd700'];
   const orbs=[null,'#6688aa88','#88aacc','#5588ffaa','#44aaff','#33ccff','#22ddff','#00eeff','#00ffff','#44ffff','#88ffff'];
   const beardLen=[0,0,0,1,2,3,4,5,6,7,8];
-  return{robe:robes[Math.min(lvl,10)],trim:trims[Math.min(lvl,10)],orb:orbs[Math.min(lvl,10)],beardLen:beardLen[Math.min(lvl,10)],hasHood:lvl>=2,hasStaff:lvl>=1,hasShoulder:lvl>=6};
+  return{robe:robes[l],trim:trims[l],orb:orbs[l],beardLen:beardLen[l],hasHood:lvl>=2,hasStaff:lvl>=1,hasShoulder:lvl>=6};
 }
-
-function h2r(hex){const h=hex.replace('#','').slice(0,6);return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
 
 function drawWizard(lvl){
   const canvas=document.getElementById('wizard-canvas');
   const S=32;canvas.width=S;canvas.height=S;
-  const ctx=canvas.getContext('2d');
-  ctx.clearRect(0,0,S,S);
+  const ctx=canvas.getContext('2d');ctx.clearRect(0,0,S,S);
   const img=ctx.createImageData(S,S);const d=img.data;
   function px(x,y,hex,a){
     if(x<0||x>=S||y<0||y>=S||!hex)return;
@@ -149,11 +331,8 @@ function drawWizard(lvl){
     const[r,g,b]=h2r(hex);const i=(y*S+x)*4;
     d[i]=r;d[i+1]=g;d[i+2]=b;d[i+3]=al;
   }
-  const c=getWizardColors(lvl);
-  const[rb,rm,rd]=c.robe;
-  const SKIN='#e8c4a0',SKIN2='#c8a478',SKIN3='#a07850';
-  const BEARD='#d8d8d8',BEARD2='#b8b8b8';
-  const SC='#8B5e3c',SD='#6b4020';
+  const c=getWizardColors(lvl);const[rb,rm,rd]=c.robe;
+  const SKIN='#e8c4a0',SKIN2='#c8a478',SKIN3='#a07850',BEARD='#d8d8d8',BEARD2='#b8b8b8',SC='#8B5e3c',SD='#6b4020';
   if(c.hasStaff){
     for(let y=4;y<=28;y++){px(23,y,SC);px(24,y,SD);}
     px(22,4,SC);px(25,4,SC);px(21,3,SC);px(26,3,SC);
@@ -177,7 +356,6 @@ function drawWizard(lvl){
   }
   [12,13,14,15,16,17,18,19,20].forEach(x=>px(x,28,rm));
   [12,13,14,15,16,17,18,19].forEach(x=>px(x,29,rd));
-  px(16,30,rd);px(15,30,rd);px(17,30,rd);
   if(c.trim){
     [14,15,16,17,18].forEach(x=>px(x,13,c.trim));
     for(let y=14;y<=26;y+=2){px(13,y,c.trim);px(19,y,c.trim);}
@@ -192,8 +370,7 @@ function drawWizard(lvl){
   [13,14,15,16,17,18,19].forEach(x=>{px(x,9,SKIN);px(x,10,SKIN);});
   [14,15,16,17,18].forEach(x=>px(x,11,SKIN2));
   px(14,9,'#3a2810');px(15,9,'#1a1008');px(17,9,'#3a2810');px(18,9,'#1a1008');
-  px(16,10,SKIN3);
-  px(15,11,'#8a5040');px(16,11,'#7a4030');px(17,11,'#8a5040');
+  px(16,10,SKIN3);px(15,11,'#8a5040');px(16,11,'#7a4030');px(17,11,'#8a5040');
   if(c.beardLen>0){
     const bl=c.beardLen;
     [14,15,16,17,18].forEach(x=>px(x,12,BEARD2));
@@ -230,84 +407,222 @@ function drawWizard(lvl){
     const i=(y*S+x)*4;if(d[i+3]===0)continue;
     const nb=[[x-1,y],[x+1,y],[x,y-1],[x,y+1]];
     for(const[nx,ny]of nb){
-      if(nx<0||nx>=S||ny<0||ny>=S||d[(ny*S+nx)*4+3]===0){d[i]=d[i]*0.55;d[i+1]=d[i+1]*0.55;d[i+2]=d[i+2]*0.55;break;}
+      if(nx<0||nx>=S||ny<0||ny>=S||d[(ny*S+nx)*4+3]===0){
+        d[i]=d[i]*0.55;d[i+1]=d[i+1]*0.55;d[i+2]=d[i+2]*0.55;break;
+      }
     }
   }
   ctx.putImageData(img,0,0);
 }
 
-function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')}
-function loadState(){const r=localStorage.getItem('resty_rpg');return r?JSON.parse(r):{level:0,streak:0,totalDays:0,lastCheckIn:null}}
-function saveState(s){localStorage.setItem('resty_rpg',JSON.stringify(s))}
-function daysBetween(a,b){if(!a)return 999;return Math.round((new Date(b)-new Date(a))/(864e5))}
-let state=loadState();
-function checkMissedDays(){
-  const today=todayStr();if(!state.lastCheckIn)return;
-  const gap=daysBetween(state.lastCheckIn,today);
-  if(gap>=2){
-    const missed=gap-1;let dropped=0;
-    for(let i=0;i<missed;i++){if(state.level>0){state.level--;dropped++;}state.streak=0;}
-    if(dropped>0){saveState(state);showMsg('You missed '+missed+' day'+(missed>1?'s':'')+'. Dropped '+dropped+' level'+(dropped>1?'s':'')+'.', false);}
-  }
+function fmtHrs(mins){
+  const h=mins/60;
+  if(h<1)return Math.round(mins)+'m';
+  return (Math.round(h*10)/10)+'h';
 }
+
 function render(){
-  const lvl=state.level,streak=state.streak;
-  const nextReq=lvl>=10?FIB[10]:FIB[lvl+1];
-  const pct=lvl>=10?100:Math.round((streak/nextReq)*100);
-  const today=todayStr(),checked=state.lastCheckIn===today;
-  drawWizard(lvl);
-  document.getElementById('char-title').textContent=TITLES[Math.min(lvl,10)]+' — Level '+lvl;
-  document.getElementById('m-lvl').textContent=lvl;
-  document.getElementById('m-str').textContent=streak;
-  document.getElementById('m-nxt').textContent=lvl>=10?'—':Math.max(0,nextReq-streak);
-  document.getElementById('total-days').textContent=state.totalDays;
-  document.getElementById('prog-text').textContent=streak+' / '+nextReq+' consecutive days';
-  document.getElementById('prog-pct').textContent=pct+'%';
-  const fill=document.getElementById('fill');
-  fill.style.width=pct+'%';fill.style.background=FILL_COLORS[Math.min(lvl,10)];
-  const badge=document.getElementById('badge');
-  badge.textContent='Lv '+lvl+' — '+TITLES[Math.min(lvl,10)];
-  badge.style.background=BADGE_BG[Math.min(lvl,10)];badge.style.color=BADGE_TEXT[Math.min(lvl,10)];
-  const btn=document.getElementById('btn-check');
-  btn.textContent=checked?'Checked in today ✓':'Check in today ✓';btn.style.opacity=checked?'0.5':'1';
-  const pips=document.getElementById('pips');pips.innerHTML='';
-  for(let i=0;i<nextReq;i++){
-    const p=document.createElement('div');
-    const dn=i<streak,nx=i===streak&&!checked;
-    p.className='pip'+(dn?' done':'')+(nx?' next':'');
-    if(dn)p.style.background=FILL_COLORS[Math.min(lvl,10)];
-    if(nx)p.style.borderColor=FILL_COLORS[Math.min(lvl,10)];
-    pips.appendChild(p);
-  }
-  const d=new Date();
-  document.getElementById('date-banner').textContent=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
-}
-function checkIn(){
   const today=todayStr();
-  if(state.lastCheckIn===today){showMsg('Already checked in today.',false);return;}
-  state.streak++;state.totalDays++;state.lastCheckIn=today;
-  const nr=state.level>=10?999:FIB[state.level+1];
-  if(state.streak>=nr&&state.level<10){
-    state.level++;state.streak=0;
-    showMsg('Level up! You are now '+TITLES[state.level]+' — Level '+state.level+'.',true);
+  const d=new Date();
+  const dateStr=d.toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'});
+  document.getElementById('date-banner').textContent=dateStr;
+  document.getElementById('date-banner-lib').textContent=dateStr;
+
+  const totalHrs=state.totalMinutes/60;
+  const lvl=getLevelFromHrs(totalHrs);
+  state.level=lvl;
+
+  drawWizard(lvl);
+
+  document.getElementById('char-name').textContent=state.name||'Resty';
+  document.getElementById('char-title').textContent=getTitle(lvl)+' — Level '+lvl;
+
+  const cumNow=cumulativeHrsToLevel(lvl);
+  const hrsForNext=hrsForLevel(lvl+1);
+  const hrsIntoLevel=Math.max(0,totalHrs-cumNow);
+  const pct=lvl>=50?100:Math.min(100,Math.round((hrsIntoLevel/hrsForNext)*100));
+  const hrsToNext=Math.max(0,Math.round((hrsForNext-hrsIntoLevel)*10)/10);
+
+  document.getElementById('xp-label').textContent=
+    (Math.round(totalHrs*10)/10)+'h / '+(Math.round((cumNow+hrsForNext)*10)/10)+'h to Level '+(lvl+1);
+  document.getElementById('xp-pct').textContent=pct+'%';
+  document.getElementById('xp-fill').style.width=pct+'%';
+
+  const streak=state.streak;
+  document.getElementById('streak-num').textContent=streak;
+  document.getElementById('streak-fire').style.display=streak>=3?'inline':'none';
+  const multLabel=getMultLabel(streak);
+  const multEl=document.getElementById('streak-mult');
+  multEl.textContent=multLabel;
+  if(multLabel){
+    const mc=getMultColors(streak);
+    multEl.style.background=mc.bg;multEl.style.color=mc.color;
   } else {
-    showMsg('Day logged. Keep the streak alive.',true);
+    multEl.style.background='transparent';multEl.style.color='transparent';
   }
-  saveState(state);render();
+
+  document.getElementById('m-hrs').textContent=(Math.round(totalHrs*10)/10)+'h';
+  document.getElementById('m-next').textContent=hrsToNext+'h';
+
+  const finishedBooks=state.library.filter(b=>b.finished).length;
+  document.getElementById('m-books').textContent=finishedBooks;
+
+  const cb=state.currentBook;
+  document.getElementById('current-book-label').textContent=
+    cb&&cb.title?(cb.title+(cb.author?' — '+cb.author:'')):'No book set';
+
+  renderLibrary();
 }
-function confirmMiss(){
-  if(confirm('Log a missed day? This will drop you one level and reset your streak.')){
-    if(state.level>0)state.level--;
-    state.streak=0;saveState(state);
-    showMsg('Streak broken. Dropped to Level '+state.level+'. Rebuild.',false);render();
+
+function renderLibrary(){
+  const lib=state.library;
+  document.getElementById('lib-meta').textContent=
+    lib.length+' book'+(lib.length!==1?'s':'')+' · '+(Math.round(state.totalMinutes/60*10)/10)+'h total';
+
+  if(lib.length===0){
+    document.getElementById('book-list').innerHTML=
+      '<div style="text-align:center;padding:16px;font-size:12px;color:var(--text3)">No books yet. Add your first one!</div>';
+    return;
   }
+
+  const colors=['#1e40af','#16a34a','#d97706','#db2777','#7c3aed','#0891b2','#dc2626'];
+  const bgs=['#dbeafe','#dcfce7','#fef3c7','#fce7f3','#ede9fe','#cffafe','#fee2e2'];
+
+  let html='';
+  lib.forEach((book,i)=>{
+    const ci=i%colors.length;
+    const isCurrent=state.currentBook&&state.currentBook.title===book.title;
+    html+=`<div class="book-item">
+      <div class="book-spine" style="background:${bgs[ci]}">
+        <svg width="16" height="20" viewBox="0 0 16 20"><rect width="16" height="20" rx="2" fill="${colors[ci]}"/><rect x="3" y="4" width="10" height="1.5" rx="0.5" fill="white" opacity="0.6"/><rect x="3" y="7" width="7" height="1.5" rx="0.5" fill="white" opacity="0.4"/></svg>
+      </div>
+      <div class="book-info">
+        <div class="book-name">${book.title}</div>
+        <div class="book-auth">${book.author||''}</div>
+        <div class="book-tags">
+          ${isCurrent?'<span class="btag tag-now">Now reading</span>':''}
+          ${book.finished?'<span class="btag tag-done">Finished</span>':''}
+          ${book.minutes>0?'<span class="btag tag-hrs">'+fmtHrs(book.minutes)+'</span>':''}
+          ${book.levelStart!==undefined?'<span class="btag tag-lvl">Lv '+book.levelStart+' → '+book.levelEnd+'</span>':''}
+        </div>
+      </div>
+    </div>`;
+  });
+  document.getElementById('book-list').innerHTML=html;
 }
+
+function addTime(mins){
+  pendingMinutes+=mins;
+  showMsg('+'+(mins>=60?(mins/60)+'hr':mins+'m')+' queued. Tap Log session to save.',true);
+}
+
+function logSession(){
+  if(pendingMinutes===0){showMsg('Tap a time button first.',false);return;}
+  const today=todayStr();
+  const mult=getMultiplier(state.streak);
+  const effective=pendingMinutes*mult;
+  state.totalMinutes+=effective;
+
+  if(state.lastReadDate!==today){
+    const gap=daysBetween(state.lastReadDate,today);
+    if(gap<=1||(gap===2&&state.gracePending)){
+      state.streak++;
+      state.gracePending=false;
+    } else {
+      state.streak=1;
+      state.gracePending=false;
+    }
+    state.lastReadDate=today;
+  }
+
+  if(state.currentBook&&state.currentBook.title){
+    const bi=state.library.findIndex(b=>b.title===state.currentBook.title);
+    if(bi>=0){
+      state.library[bi].minutes=(state.library[bi].minutes||0)+effective;
+      state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
+    }
+  }
+
+  const oldLvl=state.level;
+  const newLvl=getLevelFromHrs(state.totalMinutes/60);
+  state.level=newLvl;
+
+  const hrsLogged=Math.round(effective/60*10)/10;
+  if(newLvl>oldLvl){
+    showMsg('Level up! You are now '+getTitle(newLvl)+' — Level '+newLvl+'.',true);
+  } else {
+    showMsg(fmtHrs(pendingMinutes)+' logged'+(mult>1?' ('+mult+'x = '+fmtHrs(effective)+'!':'')+')',true);
+  }
+
+  pendingMinutes=0;
+  saveState();
+  render();
+}
+
 function showMsg(text,good){
-  const el=document.getElementById('msg');el.textContent=text;
-  el.className='msg '+(good?'good':'bad');el.style.opacity='1';
+  const el=document.getElementById('msg');
+  el.textContent=text;el.className='msg '+(good?'good':'bad');el.style.opacity='1';
   clearTimeout(el._t);el._t=setTimeout(()=>{el.style.opacity='0';},4000);
 }
-checkMissedDays();render();
+
+function showScreen(name){
+  document.getElementById('screen-home').className='screen'+(name==='home'?' visible':'');
+  document.getElementById('screen-library').className='screen'+(name==='library'?' visible':'');
+  ['home','library'].forEach(s=>{
+    document.getElementById('tab-dot-'+s).className='tab-dot'+(s===name?' active':'');
+    document.getElementById('tab-lbl-'+s).className='tab-lbl'+(s===name?' active':'');
+  });
+}
+
+function openProfile(){
+  document.getElementById('input-name').value=state.name||'';
+  document.getElementById('input-book-title').value=state.currentBook?state.currentBook.title||'':'';
+  document.getElementById('input-book-author').value=state.currentBook?state.currentBook.author||'':'';
+  document.getElementById('modal-profile').className='modal-overlay open';
+}
+
+function saveProfile(){
+  const name=document.getElementById('input-name').value.trim();
+  const title=document.getElementById('input-book-title').value.trim();
+  const author=document.getElementById('input-book-author').value.trim();
+  if(name)state.name=name;
+  state.currentBook={title,author};
+  if(title){
+    const exists=state.library.find(b=>b.title===title);
+    if(!exists){
+      state.library.unshift({title,author,minutes:0,finished:false,levelStart:state.level,levelEnd:state.level});
+    }
+  }
+  closeModal('modal-profile');
+  saveState();render();
+}
+
+function openAddBook(){
+  document.getElementById('add-book-title').value='';
+  document.getElementById('add-book-author').value='';
+  document.getElementById('modal-add-book').className='modal-overlay open';
+}
+
+function saveNewBook(){
+  const title=document.getElementById('add-book-title').value.trim();
+  const author=document.getElementById('add-book-author').value.trim();
+  if(!title){return;}
+  const exists=state.library.find(b=>b.title===title);
+  if(!exists){
+    state.library.push({title,author,minutes:0,finished:false,levelStart:state.level,levelEnd:state.level});
+  }
+  closeModal('modal-add-book');
+  saveState();render();
+}
+
+function closeModal(id){document.getElementById(id).className='modal-overlay';}
+
+document.querySelectorAll('.modal-overlay').forEach(m=>{
+  m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});
+});
+
+checkStreak();
+render();
 </script>
 </body>
 </html>
