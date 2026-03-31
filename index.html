@@ -65,9 +65,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .lb-main{background:var(--blue);color:#fff;border-radius:8px;padding:10px;font-size:13px;font-weight:700;text-align:center;cursor:pointer;border:none;font-family:inherit;width:100%;transition:opacity 0.15s}
 .lb-main:active{opacity:0.8}
 .lb-main:disabled{opacity:0.4;cursor:default}
-.last-session{display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:0.5px solid var(--border)}
-.last-session-label{font-size:11px;color:var(--text3)}
-.last-session-edit{font-size:11px;color:var(--blue-text);background:none;border:none;cursor:pointer;font-family:inherit;font-weight:600;padding:0}
+.sessions-section{margin-top:10px;padding-top:10px;border-top:0.5px solid var(--border)}
+.sessions-header{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:0.05em;text-transform:uppercase;margin-bottom:7px}
+.session-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:0.5px solid var(--border)}
+.session-row:last-child{border-bottom:none;padding-bottom:0}
+.session-left{display:flex;flex-direction:column;gap:2px}
+.session-time{font-size:13px;font-weight:600;color:var(--text)}
+.session-meta{font-size:10px;color:var(--text3)}
+.session-actions{display:flex;gap:6px}
+.session-edit{font-size:11px;color:var(--blue-text);background:var(--blue-bg);border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:inherit;font-weight:600}
+.session-del{font-size:11px;color:var(--red-text);background:var(--red-bg);border:none;border-radius:5px;padding:3px 8px;cursor:pointer;font-family:inherit;font-weight:600}
 .msg{font-size:12px;text-align:center;margin-top:7px;min-height:16px;transition:opacity 0.3s}
 .msg.good{color:var(--green)}
 .msg.bad{color:var(--red)}
@@ -98,7 +105,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 .modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:100;align-items:flex-end;justify-content:center}
 .modal-overlay.open{display:flex}
 .modal{background:var(--bg);border-radius:20px 20px 0 0;padding:20px 16px 40px;width:100%;max-width:420px}
-.modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:14px}
+.modal-title{font-size:15px;font-weight:700;color:var(--text);margin-bottom:4px}
+.modal-subtitle{font-size:11px;color:var(--text3);margin-bottom:14px}
 .modal-row{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
 .modal-label{font-size:11px;font-weight:600;color:var(--text2)}
 .modal-input{font-size:14px;padding:9px 11px;border:0.5px solid var(--border2);border-radius:var(--radius);background:var(--bg2);color:var(--text);font-family:inherit;width:100%}
@@ -157,7 +165,7 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           <button class="lb" onclick="addTime(60)">+1hr</button>
           <button class="lb" onclick="addTime(120)">+2hr</button>
         </div>
-        <div class="queue-row" id="queue-row">
+        <div class="queue-row">
           <span class="queue-empty" id="queue-empty">No time queued</span>
           <div class="queue-filled" id="queue-filled" style="display:none">
             <span class="queue-time" id="queue-time">0m</span>
@@ -166,9 +174,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
           </div>
         </div>
         <button class="lb-main" id="log-btn" onclick="logSession()" disabled>Log session</button>
-        <div id="last-session-row" class="last-session" style="display:none">
-          <span class="last-session-label" id="last-session-label"></span>
-          <button class="last-session-edit" onclick="openEditSession()">Edit</button>
+        <div id="sessions-section" class="sessions-section" style="display:none">
+          <div class="sessions-header">Today's sessions</div>
+          <div id="sessions-list"></div>
         </div>
         <div class="msg" id="msg"></div>
       </div>
@@ -244,14 +252,15 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;backgrou
 
 <div class="modal-overlay" id="modal-edit-session">
   <div class="modal">
-    <div class="modal-title">Edit last session</div>
+    <div class="modal-title">Edit session</div>
+    <div class="modal-subtitle" id="edit-session-subtitle"></div>
     <div class="modal-row">
       <div class="modal-label">Correct time (minutes)</div>
       <input class="modal-input" id="edit-session-mins" type="number" min="1" placeholder="e.g. 45"/>
     </div>
-    <div style="font-size:11px;color:var(--text3);margin-bottom:12px" id="edit-session-note"></div>
     <div class="modal-actions">
-      <button class="btn-danger" onclick="deleteLastSession()">Remove session</button>
+      <button class="btn-danger" onclick="deleteSession()">Delete</button>
+      <button class="btn-cancel" onclick="closeModal('modal-edit-session')">Cancel</button>
       <button class="btn-save" onclick="saveEditSession()">Save</button>
     </div>
   </div>
@@ -267,10 +276,8 @@ const step=remaining/(linearLevels+linearLevels*(linearLevels-1)/2);
 
 function hrsForLevel(l){
   if(l<=FIB_LEVELS)return RAW_FIB[l];
-  const pos=l-FIB_LEVELS;
-  return Math.round(step*pos*10)/10;
+  return Math.round(step*(l-FIB_LEVELS)*10)/10;
 }
-
 function cumulativeHrsToLevel(l){
   let c=0;for(let i=1;i<=l;i++)c+=hrsForLevel(i);return Math.round(c*10)/10;
 }
@@ -298,11 +305,17 @@ function todayStr(){const d=new Date();return d.getFullYear()+'-'+String(d.getMo
 function daysBetween(a,b){if(!a)return 999;return Math.round((new Date(b)-new Date(a))/(864e5));}
 
 function loadState(){
-  const r=localStorage.getItem('reading_rpg_v2');
+  const r=localStorage.getItem('reading_rpg_v3');
   if(r)return JSON.parse(r);
-  return{name:'Resty',totalMinutes:0,streak:0,lastReadDate:null,gracePending:false,currentBook:{title:'',author:''},library:[],level:0,lastSession:null};
+  // migrate from v2
+  const old=localStorage.getItem('reading_rpg_v2');
+  if(old){
+    const o=JSON.parse(old);
+    return{name:o.name||'Resty',totalMinutes:o.totalMinutes||0,streak:o.streak||0,lastReadDate:o.lastReadDate||null,gracePending:o.gracePending||false,currentBook:o.currentBook||{title:'',author:''},library:o.library||[],level:o.level||0,sessions:[]};
+  }
+  return{name:'Resty',totalMinutes:0,streak:0,lastReadDate:null,gracePending:false,currentBook:{title:'',author:''},library:[],level:0,sessions:[]};
 }
-function saveState(){localStorage.setItem('reading_rpg_v2',JSON.stringify(state));}
+function saveState(){localStorage.setItem('reading_rpg_v3',JSON.stringify(state));}
 
 function getLevelFromHrs(hrs){
   let lvl=0,cum=0;
@@ -321,10 +334,11 @@ function checkStreak(){
 
 let state=loadState();
 let pendingMinutes=0;
+let editingSessionId=null;
 
 function fmtMins(mins){
-  if(mins<60)return mins+'m';
-  const h=Math.floor(mins/60),m=mins%60;
+  if(mins<60)return Math.round(mins)+'m';
+  const h=Math.floor(mins/60),m=Math.round(mins%60);
   return h+'h'+(m>0?' '+m+'m':'');
 }
 function fmtHrs(mins){
@@ -338,20 +352,39 @@ function updateQueueUI(){
   const filled=document.getElementById('queue-filled');
   const btn=document.getElementById('log-btn');
   if(pendingMinutes===0){
-    empty.style.display='inline';
-    filled.style.display='none';
-    btn.disabled=true;
+    empty.style.display='inline';filled.style.display='none';btn.disabled=true;
   } else {
-    empty.style.display='none';
-    filled.style.display='flex';
+    empty.style.display='none';filled.style.display='flex';
     document.getElementById('queue-time').textContent=fmtMins(pendingMinutes);
     btn.disabled=false;
   }
 }
 
-function clearQueue(){
-  pendingMinutes=0;
-  updateQueueUI();
+function clearQueue(){pendingMinutes=0;updateQueueUI();}
+
+function renderSessions(){
+  const today=todayStr();
+  const todaySessions=(state.sessions||[]).filter(s=>s.date===today);
+  const section=document.getElementById('sessions-section');
+  const list=document.getElementById('sessions-list');
+  if(todaySessions.length===0){section.style.display='none';return;}
+  section.style.display='block';
+  list.innerHTML=todaySessions.map(s=>{
+    const mult=s.multiplier;
+    const timeStr=fmtMins(s.rawMinutes)+(mult>1?' × '+mult+' = '+fmtHrs(s.effectiveMinutes):'');
+    const t=new Date(s.timestamp);
+    const timeLabel=t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+    return `<div class="session-row">
+      <div class="session-left">
+        <div class="session-time">${timeStr}</div>
+        <div class="session-meta">${timeLabel}${s.book?' · '+s.book:''}</div>
+      </div>
+      <div class="session-actions">
+        <button class="session-edit" onclick="openEditSession('${s.id}')">Edit</button>
+        <button class="session-del" onclick="confirmDeleteSession('${s.id}')">Del</button>
+      </div>
+    </div>`;
+  }).join('');
 }
 
 function h2r(hex){const h=hex.replace('#','').slice(0,6);return[parseInt(h.slice(0,2),16),parseInt(h.slice(2,4),16),parseInt(h.slice(4,6),16)];}
@@ -503,19 +536,8 @@ function render(){
   document.getElementById('current-book-label').textContent=
     cb&&cb.title?(cb.title+(cb.author?' — '+cb.author:'')):'No book set';
 
-  const lsr=document.getElementById('last-session-row');
-  if(state.lastSession){
-    lsr.style.display='flex';
-    const mult=state.lastSession.multiplier;
-    const raw=fmtMins(state.lastSession.rawMinutes);
-    const effective=fmtHrs(state.lastSession.effectiveMinutes);
-    document.getElementById('last-session-label').textContent=
-      'Last: '+raw+(mult>1?' × '+mult+' = '+effective:'')+' logged';
-  } else {
-    lsr.style.display='none';
-  }
-
   updateQueueUI();
+  renderSessions();
   renderLibrary();
 }
 
@@ -553,10 +575,7 @@ function renderLibrary(){
   document.getElementById('book-list').innerHTML=html;
 }
 
-function addTime(mins){
-  pendingMinutes+=mins;
-  updateQueueUI();
-}
+function addTime(mins){pendingMinutes+=mins;updateQueueUI();}
 
 function logSession(){
   if(pendingMinutes===0){showMsg('Tap a time button first.',false);return;}
@@ -572,15 +591,22 @@ function logSession(){
     state.lastReadDate=today;
   }
 
-  if(state.currentBook&&state.currentBook.title){
-    const bi=state.library.findIndex(b=>b.title===state.currentBook.title);
+  const bookTitle=state.currentBook&&state.currentBook.title?state.currentBook.title:'';
+  if(bookTitle){
+    const bi=state.library.findIndex(b=>b.title===bookTitle);
     if(bi>=0){
       state.library[bi].minutes=(state.library[bi].minutes||0)+effective;
       state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
     }
   }
 
-  state.lastSession={rawMinutes:pendingMinutes,effectiveMinutes:effective,multiplier:mult};
+  const sessionId='s_'+Date.now();
+  if(!state.sessions)state.sessions=[];
+  state.sessions.push({
+    id:sessionId,date:today,timestamp:Date.now(),
+    rawMinutes:pendingMinutes,effectiveMinutes:effective,
+    multiplier:mult,book:bookTitle
+  });
 
   const oldLvl=state.level;
   const newLvl=getLevelFromHrs(state.totalMinutes/60);
@@ -594,57 +620,66 @@ function logSession(){
   }
 
   pendingMinutes=0;
-  saveState();
-  render();
+  saveState();render();
 }
 
-function openEditSession(){
-  if(!state.lastSession)return;
-  document.getElementById('edit-session-mins').value=state.lastSession.rawMinutes;
-  const mult=state.lastSession.multiplier;
-  document.getElementById('edit-session-note').textContent=
-    mult>1?'Multiplier applied at time of logging: '+mult+'x':'No multiplier was active.';
+function openEditSession(id){
+  const s=state.sessions.find(x=>x.id===id);
+  if(!s)return;
+  editingSessionId=id;
+  document.getElementById('edit-session-mins').value=s.rawMinutes;
+  const t=new Date(s.timestamp);
+  const timeLabel=t.toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
+  document.getElementById('edit-session-subtitle').textContent=
+    'Session at '+timeLabel+(s.multiplier>1?' · '+s.multiplier+'x multiplier active':'');
   document.getElementById('modal-edit-session').className='modal-overlay open';
 }
 
 function saveEditSession(){
-  if(!state.lastSession)return;
+  if(!editingSessionId)return;
+  const idx=state.sessions.findIndex(x=>x.id===editingSessionId);
+  if(idx<0)return;
+  const s=state.sessions[idx];
   const newRaw=parseInt(document.getElementById('edit-session-mins').value)||0;
-  if(newRaw<0)return;
-  const oldEffective=state.lastSession.effectiveMinutes;
-  const mult=state.lastSession.multiplier;
-  const newEffective=newRaw*mult;
-  const diff=newEffective-oldEffective;
+  if(newRaw<=0)return;
+  const newEffective=newRaw*s.multiplier;
+  const diff=newEffective-s.effectiveMinutes;
   state.totalMinutes=Math.max(0,state.totalMinutes+diff);
-  if(state.currentBook&&state.currentBook.title){
-    const bi=state.library.findIndex(b=>b.title===state.currentBook.title);
+  if(s.book){
+    const bi=state.library.findIndex(b=>b.title===s.book);
     if(bi>=0){
       state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)+diff);
       state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
     }
   }
-  state.lastSession={rawMinutes:newRaw,effectiveMinutes:newEffective,multiplier:mult};
+  state.sessions[idx]={...s,rawMinutes:newRaw,effectiveMinutes:newEffective};
+  editingSessionId=null;
   closeModal('modal-edit-session');
   saveState();render();
   showMsg('Session updated.',true);
 }
 
-function deleteLastSession(){
-  if(!state.lastSession)return;
-  const oldEffective=state.lastSession.effectiveMinutes;
-  state.totalMinutes=Math.max(0,state.totalMinutes-oldEffective);
-  if(state.currentBook&&state.currentBook.title){
-    const bi=state.library.findIndex(b=>b.title===state.currentBook.title);
+function confirmDeleteSession(){
+  if(!editingSessionId)return;
+  const idx=state.sessions.findIndex(x=>x.id===editingSessionId);
+  if(idx<0)return;
+  const s=state.sessions[idx];
+  state.totalMinutes=Math.max(0,state.totalMinutes-s.effectiveMinutes);
+  if(s.book){
+    const bi=state.library.findIndex(b=>b.title===s.book);
     if(bi>=0){
-      state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)-oldEffective);
+      state.library[bi].minutes=Math.max(0,(state.library[bi].minutes||0)-s.effectiveMinutes);
       state.library[bi].levelEnd=getLevelFromHrs(state.totalMinutes/60);
     }
   }
-  state.lastSession=null;
+  state.sessions.splice(idx,1);
+  editingSessionId=null;
   closeModal('modal-edit-session');
   saveState();render();
   showMsg('Session removed.',false);
 }
+
+function deleteSession(){confirmDeleteSession();}
 
 function showMsg(text,good){
   const el=document.getElementById('msg');
@@ -695,7 +730,6 @@ function saveNewBook(){
 }
 
 function closeModal(id){document.getElementById(id).className='modal-overlay';}
-
 document.querySelectorAll('.modal-overlay').forEach(m=>{
   m.addEventListener('click',e=>{if(e.target===m)closeModal(m.id);});
 });
